@@ -24,7 +24,7 @@ def vehicles(request):
     brand_id = request.GET.get('brand', '')
     fuel_id = request.GET.get('fuel_type', '')
 
-    cars = Car.objects.all()
+    cars = Car.objects.all() #fetch all cars
     if color_id:
         cars = cars.filter(car_color_id=color_id)
     if model_id:

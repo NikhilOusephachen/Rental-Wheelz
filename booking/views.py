@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 
 
 @login_required
-def bill(request, id):
+def bill(request, id): #car id fetch details
     car = get_object_or_404(Car, id=id)
 
     if request.method == 'POST':
