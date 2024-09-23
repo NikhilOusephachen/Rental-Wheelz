@@ -1,0 +1,57 @@
+<!-- templates/dashboard.html -->
+{% extends 'manager/basemanager.html' %}
+
+{% block title %}Manager Dashboard{% endblock %}
+
+{% block header %}Dashboard Overview{% endblock %}
+
+{% block content %}
+<section class="dashboard-cards">
+    <div class="card">
+        <h3>Total Orders</h3>
+        <p>{{order_count}}</p>
+    </div>
+    <div class="card">
+        <h3>Total Cars</h3>
+        <p>{{car_count}}</p>
+    </div>
+    <div class="card">
+        <h3>Approved Order Pending</h3>
+        <p>{{approved_count}}</p>
+    </div>
+</section>
+
+<!-- Recent Activity Section -->
+<section class="report-section">
+    <h3>Recent Order Activity</h3>
+    <table class="activity-table">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Customer Name</th>
+                <th>Order Date</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in recent_orders %}
+            <tr>
+                <td>{{ order.id }}</td>
+                <td>{{ order.user.first_name}} {{ order.user.last_name }}</td> <!-- Assuming a 'customer' ForeignKey relation -->
+                <td>{{ order.created_at|date:"Y-m-d H:i" }}</td> <!-- Format the date -->
+                <td>
+                    <span class="status {% if order.status == 'Completed' %}success{% elif order.status == 'Pending' %}pending{% else %}failed{% endif %}">
+                        {{ order.is_approved }}
+                    </span>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4">No recent orders found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+
+{% endblock %}

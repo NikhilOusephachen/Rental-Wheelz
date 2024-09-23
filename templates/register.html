@@ -1,0 +1,323 @@
+{% extends 'base.html' %} {% load static %}
+<link rel="stylesheet" href="{% static 'style.css' %}" />
+
+{% block body %}
+
+<section class="h-100 bg-dark">
+  {% include 'messages.html' %}
+  <div class="container py-5 h-100">
+    <div class="row d-flex justify-content-center align-items-center h-100">
+      <div class="col">
+        <div class="card card-registration my-4">
+          <div class="row g-0">
+            <div class="col-xl-6 d-none d-xl-block">
+              <img
+                src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-registration/img4.webp"
+                alt="Sample photo"
+                class="img-fluid"
+                style="
+                  border-top-left-radius: 0.25rem;
+                  border-bottom-left-radius: 0.25rem;
+                "
+              />
+            </div>
+            <div class="col-xl-6">
+              <div class="card-body p-md-5 text-black">
+                <h3 class="mb-5 text-uppercase">Sign Up</h3>
+
+                <form
+                  method="post"
+                  action="\register"
+                  onsubmit="return validateForm()"
+                >
+                  {% csrf_token %}
+                  <div class="form-group">
+                    <label for="first_name">First Name</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="first_name"
+                      placeholder="First Name"
+                      name="first_name"
+                      onchange="validateName()"
+                    />
+                    <div
+                      id="first_name_error"
+                      class="alert alert-danger"
+                      style="display: none"
+                    ></div>
+					{% if form.first_name.errors %}
+                    <div id="username_error" class="alert alert-danger">
+                      {% for error in form.first_name.errors %}
+                      <p>{{ error }}</p>
+                      {% endfor %}
+                    </div>
+                    {% endif %}
+                  </div>
+                  <div class="form-group">
+                    <label for="last_name">Last Name</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="last_name"
+                      placeholder="Last Name"
+                      name="last_name"
+                      onchange="validateLastName()"
+                    />
+                    <div
+                      id="last_name_error"
+                      class="alert alert-danger"
+                      style="display: none"
+                    ></div>
+                    {% if form.last_name.errors %}
+                    <div id="username_error" class="alert alert-danger">
+                      {% for error in form.last_name.errors %}
+                      <p>{{ error }}</p>
+                      {% endfor %}
+                    </div>
+                    {% endif %}
+                  </div>
+                  <div class="form-group">
+                    <label for="username">UserName</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="username"
+                      placeholder="Username"
+                      name="username"
+                      onchange="validateUsername()"
+                    />
+                    {% if form.username.errors %}
+                    <div id="username_error" class="alert alert-danger">
+                      {% for error in form.username.errors %}
+                      <p>{{ error }}</p>
+                      {% endfor %}
+                    </div>
+                    {% endif %}
+                    <div
+                      id="username_error"
+                      class="alert alert-danger"
+                      style="display: none"
+                    ></div>
+                  </div>
+                  <div class="form-group">
+                    <label for="phone_number">Phone Number</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="number"
+                      placeholder="Eg: 9120001478"
+                      name="phone_number"
+                      onchange="validatePhoneNumber()"
+                    />
+                    <div
+                      id="phone_number_error"
+                      class="alert alert-danger"
+                      style="display: none"
+                    ></div>
+                    {% if form.phone_number.errors %}
+                    <div id="phone_number_error" class="alert alert-danger">
+                      {% for error in form.phone_number.errors %}
+                      <p>{{ error }}</p>
+                      {% endfor %}
+                    </div>
+                    {% endif %}
+                  </div>
+                  <div class="form-group">
+                    <label for="email">Email address</label>
+                    <input
+                      type="email"
+                      class="form-control"
+                      id="email"
+                      aria-describedby="emailHelp"
+                      placeholder="Enter email"
+                      name="email"
+                      onchange="validateEmail()"
+                    />
+                    <small id="emailHelp" class="form-text text-muted"
+                      >We'll never share your email with anyone else.</small
+                    >
+                    <div
+                      id="email_error"
+                      class="alert alert-danger"
+                      style="display: none"
+                    ></div>
+                    {% if form.email.errors %}
+                    <div id="email_error" class="alert alert-danger">
+                      {% for error in form.email.errors %}
+                      <p>{{ error }}</p>
+                      {% endfor %}
+                    </div>
+                    {% endif %}
+                  </div>
+                  <div class="form-group">
+                    <label for="password1">Password</label>
+                    <input
+                      type="password"
+                      class="form-control"
+                      id="password1"
+                      placeholder="Password"
+                      name="password1"
+                      onchange="validatePassword()"
+                    />
+                    <div
+                      id="password1_error"
+                      class="alert alert-danger"
+                      style="display: none"
+                    ></div>
+                    {% if form.password1.errors %}
+                    <div id="password1_error" class="alert alert-danger">
+                      {% for error in form.password1.errors %}
+                      <p>{{ error }}</p>
+                      {% endfor %}
+                    </div>
+                    {% endif %}
+                  </div>
+                  <div class="form-group">
+                    <label for="password2">Confirm Password</label>
+                    <input
+                      type="password"
+                      class="form-control"
+                      id="password2"
+                      placeholder="Confirm Password"
+                      name="password2"
+                      onchange="validateConfirmPassword()"
+                    />
+                    <div
+                      id="password2_error"
+                      class="alert alert-danger"
+                      style="display: none"
+                    ></div>
+                    {% if form.password2.errors %}
+                    <div id="password2_error" class="alert alert-danger">
+                      {% for error in form.password2.errors %}
+                      <p>{{ error }}</p>
+                      {% endfor %}
+                    </div>
+                    {% endif %}
+                  </div>
+                  <div class="d-flex justify-content-end pt-3">
+                    <button type="submit" class="btn btn-warning btn-lg ms-2">
+                      Submit
+                    </button>
+                  </div>
+                </form>
+
+                <script>
+                  function showError(id, message) {
+                    var errorElement = document.getElementById(id);
+                    errorElement.textContent = message;
+                    errorElement.style.display = "block";
+                  }
+
+                  function hideError(id) {
+                    var errorElement = document.getElementById(id);
+                    errorElement.style.display = "none";
+                  }
+
+                  function validateName() {
+                    var name = document.getElementById("first_name").value;
+                    if (name.trim() === "") {
+                      showError("first_name_error", "First Name is required.");
+                      return false;
+                    }
+                    hideError("first_name_error");
+                    return true;
+                  }
+
+                  function validateLastName() {
+                    var lastName = document.getElementById("last_name").value;
+                    if (lastName.trim() === "") {
+                      showError("last_name_error", "Last Name is required.");
+                      return false;
+                    }
+                    hideError("last_name_error");
+                    return true;
+                  }
+
+                  function validateUsername() {
+                    var username = document.getElementById("username").value;
+                    if (username.trim() === "") {
+                      showError("username_error", "Username is required.");
+                      return false;
+                    }
+                    hideError("username_error");
+                    return true;
+                  }
+
+                  function validatePhoneNumber() {
+                    var number = document.getElementById("number").value;
+                    var phonePattern = /^[0-9]{10}$/;
+                    if (!phonePattern.test(number)) {
+                      showError(
+                        "phone_number_error",
+                        "Please enter a valid 10-digit phone number."
+                      );
+                      return false;
+                    }
+                    hideError("phone_number_error");
+                    return true;
+                  }
+
+                  function validateEmail() {
+                    var email = document.getElementById("email").value;
+                    var emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailPattern.test(email)) {
+                      showError(
+                        "email_error",
+                        "Please enter a valid email address."
+                      );
+                      return false;
+                    }
+                    hideError("email_error");
+                    return true;
+                  }
+
+                  function validatePassword() {
+                    var password = document.getElementById("password1").value;
+                    var passwordPattern =
+                      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+                    if (!passwordPattern.test(password)) {
+                      showError(
+                        "password1_error",
+                        "Password must be at least 8 characters long, contain uppercase, lowercase, number, and special character."
+                      );
+                      return false;
+                    }
+                    hideError("password1_error");
+                    return true;
+                  }
+
+                  function validateConfirmPassword() {
+                    var password = document.getElementById("password1").value;
+                    var password2 = document.getElementById("password2").value;
+                    if (password !== password2) {
+                      showError("password2_error", "Passwords do not match.");
+                      return false;
+                    }
+                    hideError("password2_error");
+                    return true;
+                  }
+
+                  function validateForm() {
+                    return (
+                      validateName() &&
+                      validateLastName() &&
+                      validateUsername() &&
+                      validatePhoneNumber() &&
+                      validateEmail() &&
+                      validatePassword() &&
+                      validateConfirmPassword()
+                    );
+                  }
+                </script>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock body %}

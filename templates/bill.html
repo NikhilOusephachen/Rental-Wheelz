@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% block title %}
+{{ car.car_name }} - Rent it!
+{% endblock title %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'style.css' %}" />
+
+{% block body %}
+<form method="post">
+  {% csrf_token %}
+  <div class="container my-4">
+    <div class="row">
+      <!-- Left Column: Car Details -->
+      <div class="col-md-5">
+        <div class="card shadow-sm mb-4" style="border-radius: 5px;">
+          <img
+            src="{{ car.image.url }}"
+            class="card-img-top"
+            alt="{{ car.car_name }}"
+            style="height: 200px; object-fit: cover; border-top-left-radius: 5px; border-top-right-radius: 5px;"
+          />
+          <div class="card-body">
+            <h5 class="card-title">{{ car.car_name }}</h5>
+            <p class="card-text">{{ car.car_desc }}</p>
+            <p class="card-text">
+              Availability
+              <span class="status-indicator {% if car.available %}available{% else %}not-available{% endif %}"></span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Booking Form -->
+      <div class="col-md-7">
+        <h2 class="text-center my-4">Booking Details</h2>
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label for="dayss">No. of days:</label>
+            <input
+              type="number"
+              class="form-control"
+              id="dayss"
+              name="dayss"
+              min="1"
+              max="30"
+            />
+          </div>
+          <div class="form-group col-md-6">
+            <label for="date">Pickup Date:</label>
+            <input type="date" class="form-control" id="date" name="date" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label for="fl">Pick Up Location:</label>
+            <input type="text" class="form-control" id="fl" name="fl" />
+          </div>
+          <div class="form-group col-md-6">
+            <label for="tl">Drop Off Location:</label>
+            <input type="text" class="form-control" id="tl" name="tl" />
+          </div>
+        </div>
+
+        <!-- Bill Section -->
+        <div class="my-4">
+          <ul class="list-group">
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <strong>Car Name:</strong> <span id="crs1">{{ car.car_name }}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <strong>Car Model:</strong> <span id="crs2">{{ car.car_model.model_name }}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <strong>Color:</strong> <span id="crs3">{{ car.car_color.color }}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <strong>Daily Rate:</strong> <span id="crs3">₹{{ car.price }}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <strong>Fuel:</strong> <span id="crs4">{{ car.car_fuel.fuel }}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <strong>Pick Up Location:</strong> <span id="l1">Not specified</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <strong>Drop Off Location:</strong> <span id="l2">Not specified</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <strong>Pickup Date:</strong> <span id="d1">Not specified</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <strong>No. of Days:</strong> <span id="d2">0</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center" id="rentsec">
+              Total Rent is: Rs <span>0</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Buttons: Display Bill and Confirm Booking -->
+        <div class="text-center">
+          <button
+            class="btn btn-primary"
+            type="button"
+            data-toggle="modal"
+            data-target="#exampleModalLong"
+            id="showre"
+            onclick="calculate()"
+          >
+            Display Bill
+          </button>
+          <button class="btn btn-primary" type="submit">Confirm Booking</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+
+<script>
+  var carPrice = Number('{{ car.price|default:"0"|escapejs }}');
+
+  function calculate(){
+    var rent = carPrice;
+    var days = Number(document.getElementById("dayss").value);
+    var total = rent * days;
+
+    document.getElementById("rentsec").querySelector("span").textContent = total;
+
+    var fromLoc = document.getElementById("fl").value;
+    document.getElementById("l1").textContent = fromLoc;
+
+    var toLoc = document.getElementById("tl").value;
+    document.getElementById("l2").textContent = toLoc;
+
+    var date = document.getElementById("date").value;
+    document.getElementById("d1").textContent = date;
+
+    document.getElementById("d2").textContent = days;
+  }
+</script>
+
+{% endblock body %}

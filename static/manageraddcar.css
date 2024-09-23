@@ -1,0 +1,83 @@
+/* Add padding and margins to form fields */
+body {
+    font-family: 'Arial', sans-serif;
+}
+
+h2 {
+    font-size: 1.5rem;
+    color: #333;
+}
+
+.form-control, .form-control-file {
+    border-radius: 0.25rem;
+}
+
+.form-error {
+    font-size: 0.875rem;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-control, .form-control-file, .form-check-input {
+    padding: 10px;
+    margin-top: 5px;
+}
+
+.form-control:focus, .form-control-file:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 5px rgba(40, 167, 69, 0.5);
+}
+
+/* Style form errors */
+.form-error {
+    font-size: 14px;
+    color: #dc3545; /* Red color for errors */
+    margin-top: 5px;
+}
+
+/* Button styling */
+.btn {
+    padding: 10px 20px;
+    font-size: 16px;
+}
+
+.btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+    margin: 5px;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn:hover {
+    opacity: 0.9;
+}
+
+/* Card styling */
+.card {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+.card-body {
+    padding: 20px;
+}
+.btn-add-car {
+    background-color: #28a745; /* Custom color */
+    border: none;
+    color: white;
+}
+
+.btn-add-car:hover {
+    background-color: #218838; /* Darker on hover */
+}
+
+.report-section h3 {
+    font-weight: bold;
+    font-size: 1.75rem;
+}

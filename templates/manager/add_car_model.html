@@ -1,0 +1,48 @@
+{% extends 'manager/basemanager.html' %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'manageraddcar.css' %}">
+
+<div class="container mt-4">
+    <h2 class="mb-4">Add New Car Model</h2>
+
+    <form method="POST">
+        {% csrf_token %}
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <!-- Car Name -->
+                    <div class="col-md-6 mb-3">
+                        <label for="model_name">Model Name</label>
+                        <input type="text" class="form-control" id="model_name" name="model_name" value="{{ form.model_name.value }}" placeholder="Enter New Car Model">
+                        {% if form.color.errors %}
+                        <div class="form-error text-danger">{{ form.color.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="brand">Car Brand</label>
+                        <select class="form-control" id="brand" name="brand">
+                            {% for brand in form.car_brand.field.queryset %}
+                                <option value="{{ brand.id }}" {% if brand.id == form.brand.value %}selected{% endif %}>
+                                    {{ brand.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        {% if form.brand.errors %}
+                        <div class="form-error text-danger">{{ form.brand.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="form-group mt-4">
+                    <button type="submit" class="btn btn-success">Add Brand</button>
+                    <a href="{% url 'manager_car_color' %}" class="btn btn-danger">Cancel</a>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

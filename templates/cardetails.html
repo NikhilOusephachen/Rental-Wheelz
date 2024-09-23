@@ -1,0 +1,78 @@
+{% extends 'base.html' %} 
+{% block title %}
+Car Details
+{% endblock title %} 
+{%load static%}
+
+<link rel="stylesheet" href="{% static 'style.css' %}" />
+
+{% block body %}
+
+<main role="main" style="background-color: rgb(200, 200, 200)">
+  <section
+    class="jumbotron text-center"
+    style="background-color: rgb(200, 200, 200)"
+  >
+    <div class="container">
+      <h1 class="jumbotron-heading" style="font-size: 50px">
+        {{ car.car_name }} Details
+      </h1>
+      <p style="font-size: 25px; margin-top: 30px">
+        Get the full details of the car you want to rent!
+      </p>
+      <p></p>
+    </div>
+  </section>
+
+  <div class="album py-5 bg-light">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6">
+          <div class="card mb-4 shadow-sm">
+            <img
+              src="/media/{{ car.image }}"
+              alt="car"
+              class="d-block w-100"
+              height="400"
+            />
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="card-body">
+            <h4>{{ car.car_name }}</h4>
+            <p class="card-text">{{ car.car_desc }}</p>
+
+            <ul style="font-size: 18px; list-style: none; padding-left: 0">
+              <li><strong>Brand:</strong> {{ car.car_brand.name }}</li>
+              <li><strong>Model:</strong> {{ car.car_model.model_name }}</li>
+              <li><strong>Color:</strong> {{ car.car_color.color }}</li>
+              <li><strong>Fuel Type:</strong> {{ car.car_fuel.fuel }}</li>
+              <li>
+                <strong>Transmission:</strong> {{ car.transmission.transmission}}
+              </li>
+              <li><strong>Year:</strong> {{ car.year }}</li>
+              <li><strong>Price per Day:</strong> ₹{{ car.price }}</li>
+              <li>
+                <strong>Available:</strong>
+                <span
+                  class="status-indicator {% if car.available %}available{% else %}not-available{% endif %}"
+                ></span>
+              </li>
+            </ul>
+
+            <div class="d-flex justify-content-between align-items-center">
+              <div class="btn-group">
+                <a type="button" class="btn btn-lg btn-dark" href="{% url 'bill' car.id %}">
+                  Rent this Car
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+{% endblock body %}

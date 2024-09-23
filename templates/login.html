@@ -1,0 +1,256 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load socialaccount %}
+<link rel="stylesheet" href="{% static 'style.css' %}" />
+{% block body %}
+<style>
+  .login-background {
+    background-image: url("{% static 'login.jpg' %}");
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+
+  .form-outline {
+    margin-bottom: 1rem;
+  }
+
+  .text-center {
+    text-align: center !important;
+  }
+
+  .btn-block {
+    display: block;
+    width: 100%;
+  }
+
+  .or-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    margin: 5px 0; /* Reduced the margin */
+  }
+
+  .or-section::before,
+  .or-section::after {
+    content: "";
+    flex: 1;
+    border-bottom: 1px solid #ddd;
+    margin: 0 10px;
+  }
+
+  .google-signin-btn {
+    background-color: white; /* White background for the Google button */
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+  }
+
+  .google-signin-btn svg {
+    margin-right: 5px;
+  }
+</style>
+<section class="h-100 gradient-form" style="background-color: #eee">
+  {% include 'messages.html' %}
+  <div class="container py-5 h-100">
+    <div class="row d-flex justify-content-center align-items-center h-100">
+      <div class="col-xl-10">
+        <div class="card rounded-3 text-black">
+          <div class="row g-0">
+            <div class="col-lg-6">
+              <div class="card-body p-md-5 mx-md-4">
+                <div class="text-center">
+                  <img
+                    src="{% static 'logo1.webp' %}"
+                    style="width: 150px"
+                    alt="logo"
+                  />
+                  <h4 class="mt-1 mb-5 pb-1">Rental Wheelz!</h4>
+                </div>
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                  <ul>
+                    {% for error in form.non_field_errors %}
+                    <li style="list-style-type: none">{{ error }}</li>
+                    {% endfor %}
+                  </ul>
+                </div>
+                {% endif %}
+                <form method="post" id="loginForm">
+                  {% csrf_token %}
+                  <p>Please login to your account</p>
+
+                  <div class="form-outline mb-4">
+                    <label class="form-label" for="username">Username</label>
+                    <input
+                      type="text"
+                      id="loginusername"
+                      name="username"
+                      class="form-control"
+                      placeholder="Username"
+                      required
+                    />
+                    <div
+                      id="username_error"
+                      class="alert alert-danger"
+                      style="display: none"
+                    ></div>
+                    {% if form.username.errors %}
+                    <div id="username_error" class="alert alert-danger">
+                      {% for error in form.username.errors %}
+                      <p>{{ error }}</p>
+                      {% endfor %}
+                    </div>
+                    {% endif %}
+                  </div>
+
+                  <div class="form-outline mb-2">
+                    <label class="form-label" for="password">Password</label>
+                    <input
+                      type="password"
+                      id="loginpassword"
+                      name="password"
+                      class="form-control"
+                      required
+                    />
+                    <div
+                      id="password_error"
+                      class="alert alert-danger"
+                      style="display: none"
+                    ></div>
+                    {% if form.password.errors %}
+                    <div id="password_error" class="alert alert-danger">
+                      {% for error in form.password.errors %}
+                      <p>{{ error }}</p>
+                      {% endfor %}
+                    </div>
+                    {% endif %}
+                  </div>
+
+                  <a href="{% url 'password_reset' %}" class="text-muted"
+                    >Forgot password?</a
+                  >
+
+                  <div class="text-center pt-1 mb-1 pb-1">
+                    <button
+                      type="submit"
+                      class="btn btn-primary btn-block fa-lg gradient-custom-2 mb-3"
+                    >
+                      Log in
+                    </button>
+                  </div>
+
+                  <div class="or-section">
+                    <span>or</span>
+                  </div>
+
+                  <div class="text-center mb-2 pb-1">
+                    <button
+                      type="button"
+                      class="google-signin-btn"
+                      onclick="location.href='{% provider_login_url 'google' %}'"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 48 48"
+                        width="24"
+                        height="24"
+                      >
+                        <path
+                          fill="#4285F4"
+                          d="M24 9.5c3.1 0 5.6 1.1 7.4 3.1l5.5-5.5C33.4 3.5 28.9 1.5 24 1.5c-7.3 0-13.5 4.1-16.5 10.1L12 16.7C13.8 12.3 18.5 9.5 24 9.5z"
+                        ></path>
+                        <path
+                          fill="#34A853"
+                          d="M46.1 24.5c0-1.3-.1-2.7-.4-4H24v8h12.8c-.5 2-1.8 3.8-3.5 5l5.4 5.4c3.2-3 5.4-7.5 5.4-12.4z"
+                        ></path>
+                        <path
+                          fill="#FBBC05"
+                          d="M7.5 14.6L2 9.1C.7 11.6 0 14.7 0 18s.7 6.4 2 8.9l5.5-5.5C6.5 20 6 19 6 18s.5-2 1.5-3.4z"
+                        ></path>
+                        <path
+                          fill="#EA4335"
+                          d="M24 46c6.5 0 11.9-2.2 15.8-6l-5.4-5.4c-2.2 1.5-4.8 2.4-7.8 2.4-5.5 0-10.1-3.8-11.7-8.9l-5.5 5.5C10.5 41.9 16.7 46 24 46z"
+                        ></path>
+                      </svg>
+                      Login using Google
+                    </button>
+                  </div>
+                </form>
+
+                <div
+                  class="d-flex align-items-center justify-content-center pb-4"
+                >
+                  <p class="mb-0 me-2">Don't have an account?</p>
+                  <a
+                    class="btn btn-outline-danger"
+                    href="/register"
+                    role="button"
+                    >Sign Up</a
+                  >
+                </div>
+              </div>
+            </div>
+            <div
+              class="col-lg-6 d-flex align-items-center gradient-custom-2 login-background"
+            >
+              <div class="text-black px-3 py-4 p-md-5 mx-md-4"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const usernameField = document.getElementById("loginusername");
+    const passwordField = document.getElementById("loginpassword");
+
+    // Function to validate username
+    function validateUsername() {
+      const username = usernameField.value.trim();
+      const usernameError = document.getElementById("username_error");
+      if (username === "") {
+        usernameError.textContent = "Username is required.";
+        usernameError.style.display = "block";
+      } else {
+        usernameError.style.display = "none";
+      }
+    }
+
+    // Function to validate password
+    function validatePassword() {
+      const password = passwordField.value.trim();
+      const passwordError = document.getElementById("password_error");
+      if (password === "") {
+        passwordError.textContent = "Password is required.";
+        passwordError.style.display = "block";
+      } else {
+        passwordError.style.display = "none";
+      }
+    }
+
+    // Attach event listeners for input validation
+    usernameField.addEventListener("input", validateUsername);
+    passwordField.addEventListener("input", validatePassword);
+
+    // Optional: Validate on form submission
+    document
+      .getElementById("loginForm")
+      .addEventListener("submit", function (event) {
+        validateUsername();
+        validatePassword();
+        const usernameError =
+          document.getElementById("username_error").style.display;
+        const passwordError =
+          document.getElementById("password_error").style.display;
+
+        if (usernameError === "block" || passwordError === "block") {
+          event.preventDefault(); // Prevent form submission if there are errors
+        }
+      });
+  });
+</script>
+
+{% endblock %}

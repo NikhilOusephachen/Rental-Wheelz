@@ -1,0 +1,155 @@
+{% extends 'manager/basemanager.html' %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'manageraddcar.css' %}">
+
+<div class="container mt-4">
+    <h2 class="mb-4">Add New Car</h2>
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <!-- Car Name -->
+                    <div class="col-md-6 mb-3">
+                        <label for="car_name">Car Name</label>
+                        <input type="text" class="form-control" id="car_name" name="car_name" value="{{ form.car_name.value }}" placeholder="Enter car name">
+                        {% if form.car_name.errors %}
+                        <div class="form-error text-danger">{{ form.car_name.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Car Description -->
+                    <div class="col-md-6 mb-3">
+                        <label for="car_desc">Car Description</label>
+                        <textarea class="form-control" id="car_desc" name="car_desc" rows="3" placeholder="Enter car description">{{ form.car_desc.value }}</textarea>
+                        {% if form.car_desc.errors %}
+                        <div class="form-error text-danger">{{ form.car_desc.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Car Brand -->
+                    <div class="col-md-6 mb-3">
+                        <label for="car_brand">Car Brand</label>
+                        <select class="form-control" id="car_brand" name="car_brand">
+                            {% for brand in form.car_brand.field.queryset %}
+                                <option value="{{ brand.id }}" {% if brand.id == form.car_brand.value %}selected{% endif %}>
+                                    {{ brand.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        {% if form.car_brand.errors %}
+                        <div class="form-error text-danger">{{ form.car_brand.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Car Model -->
+                    <div class="col-md-6 mb-3">
+                        <label for="car_model">Car Model</label>
+                        <select class="form-control" id="car_model" name="car_model">
+                            {% for model in form.car_model.field.queryset %}
+                                <option value="{{ model.id }}" {% if model.id == form.car_model.value %}selected{% endif %}>
+                                    {{ model.model_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        {% if form.car_model.errors %}
+                        <div class="form-error text-danger">{{ form.car_model.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Year -->
+                    <div class="col-md-6 mb-3">
+                        <label for="year">Year</label>
+                        <input type="number" class="form-control" id="year" name="year" value="{{ form.year.value }}" placeholder="Enter year of manufacture">
+                        {% if form.year.errors %}
+                        <div class="form-error text-danger">{{ form.year.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Car Image -->
+                    <div class="col-md-6 mb-3">
+                        <label for="image">Car Image</label>
+                        <input type="file" class="form-control-file" id="image" name="image">
+                        {% if form.image.errors %}
+                        <div class="form-error text-danger">{{ form.image.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Car Color -->
+                    <div class="col-md-6 mb-3">
+                        <label for="car_color">Car Color</label>
+                        <select class="form-control" id="car_color" name="car_color">
+                            {% for color in form.car_color.field.queryset %}
+                                <option value="{{ color.id }}" {% if color.id == form.car_color.value %}selected{% endif %}>
+                                    {{ color.color }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        {% if form.car_color.errors %}
+                        <div class="form-error text-danger">{{ form.car_color.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Car Fuel -->
+                    <div class="col-md-6 mb-3">
+                        <label for="car_fuel">Car Fuel Type</label>
+                        <select class="form-control" id="car_fuel" name="car_fuel">
+                            {% for fuel in form.car_fuel.field.queryset %}
+                                <option value="{{ fuel.id }}" {% if fuel.id == form.car_fuel.value %}selected{% endif %}>
+                                    {{ fuel.fuel }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        {% if form.car_fuel.errors %}
+                        <div class="form-error text-danger">{{ form.car_fuel.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Transmission -->
+                    <div class="col-md-6 mb-3">
+                        <label for="transmission">Transmission</label>
+                        <select class="form-control" id="transmission" name="transmission">
+                            {% for transmission in form.transmission.field.queryset %}
+                                <option value="{{ transmission.id }}" {% if transmission.id == form.transmission.value %}selected{% endif %}>
+                                    {{ transmission.transmission }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        {% if form.transmission.errors %}
+                        <div class="form-error text-danger">{{ form.transmission.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Availability -->
+                    <div class="col-md-6 mb-3">
+                        <label for="available">Available</label>
+                        <input type="checkbox" id="available" name="available" {% if form.available.value %}checked{% endif %}>
+                        {% if form.available.errors %}
+                        <div class="form-error text-danger">{{ form.available.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Price -->
+                    <div class="col-md-6 mb-3">
+                        <label for="price">Price</label>
+                        <input type="number" class="form-control" id="price" name="price" value="{{ form.price.value }}" placeholder="Enter price">
+                        {% if form.price.errors %}
+                        <div class="form-error text-danger">{{ form.price.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="form-group mt-4">
+                    <button type="submit" class="btn btn-success">Add Car</button>
+                    <a href="{% url 'manager_car_management' %}" class="btn btn-danger">Cancel</a>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

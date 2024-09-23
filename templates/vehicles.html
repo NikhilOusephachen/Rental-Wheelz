@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% block title %}Cars{% endblock title %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'style.css' %}" />
+
+{% block body %}
+
+<main role="main" style="background-color: rgb(200, 200, 200)">
+  <section
+  class="jumbotron text-center"
+  style="background-color: rgb(200, 200, 200); padding: 2rem 1rem;"
+>
+  <div class="container">
+    {% include 'messages.html' %}
+    <h1 class="jumbotron-heading" style="font-size: 36px; margin-bottom: 15px;">
+      Welcome {{request.user.username}} !!
+    </h1>
+    <p style="font-size: 18px; margin-top: 5px;">
+      Explore our wide range of cars at unbeatable prices!
+    </p>
+  </div>
+</section>
+
+
+  <!-- Sort and Filter Options -->
+  <div class="container mb-4">
+    <form method="GET" action="" class="form-inline justify-content-center">
+      <div class="form-group mx-sm-3 mb-2">
+        <label for="sort" class="mr-2">Sort By:</label>
+        <select class="form-control" name="sort" id="sort">
+          <option value="price">Price (Low to High)</option>
+          <option value="-price">Price (High to Low)</option>
+        </select>
+      </div>
+    
+      <!-- Filter Options -->
+      <div class="form-group mx-sm-3 mb-2">
+        <label for="color" class="mr-2">Color:</label>
+        <select class="form-control" name="color" id="color">
+          <option value="">All</option>
+          {% for color in colors %}
+          <option value="{{ color.id }}" {% if color.id|stringformat:"s" == request.GET.color %}selected{% endif %}>{{ color.color }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    
+      <div class="form-group mx-sm-3 mb-2">
+        <label for="model" class="mr-2">Model:</label>
+        <select class="form-control" name="model" id="model">
+          <option value="">All</option>
+          {% for model in models %}
+          <option value="{{ model.id }}" {% if model.id|stringformat:"s" == request.GET.model %}selected{% endif %}>{{ model.model_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    
+      <div class="form-group mx-sm-3 mb-2">
+        <label for="brand" class="mr-2">Brand:</label>
+        <select class="form-control" name="brand" id="brand">
+          <option value="">All</option>
+          {% for brand in brands %}
+          <option value="{{ brand.id }}" {% if brand.id|stringformat:"s" == request.GET.brand %}selected{% endif %}>{{ brand.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    
+      <div class="form-group mx-sm-3 mb-2">
+        <label for="fuel_type" class="mr-2">Fuel Type:</label>
+        <select class="form-control" name="fuel_type" id="fuel_type">
+          <option value="">All</option>
+          {% for fuel in fuels %}
+          <option value="{{ fuel.id }}" {% if fuel.id|stringformat:"s" == request.GET.fuel_type %}selected{% endif %}>{{ fuel.fuel }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    
+      <button type="submit" class="btn btn-dark mb-2">Apply</button>
+    </form>    
+  </div>
+
+  <div class="album py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            {% for i in cars %}
+            <div class="col-lg-4 col-md-6 mb-4 d-flex align-items-stretch">
+                <div class="card shadow-sm w-100">
+                    <img
+                        src="/media/{{ i.image }}"
+                        alt="car"
+                        class="card-img-top"
+                        style="height: 180px; object-fit: cover;"
+                    />
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title text-center" style="font-size: 20px; font-weight: 600;">
+                            {{ i.car_name }}
+                        </h5>
+                        <p class="card-text" style="font-size: 14px; color: #555;">
+                            {{ i.car_desc }}
+                        </p>
+                        <p class="card-text" style="font-size: 16px; font-weight: bold;">
+                            Price per Day: ₹{{ i.price }}
+                        </p>
+                        <div class="mt-auto d-flex justify-content-center">
+                            <a href="{% url 'car_detail' i.id %}" 
+                               class="btn btn-dark btn-sm {% if not i.available %} disabled{% endif %}"
+                               {% if not i.available %} style="background-color: grey; cursor: not-allowed;" disabled{% endif %}>
+                                {% if i.available %}
+                                    RENT
+                                {% else %}
+                                    UNAVAILABLE
+                                {% endif %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+      
+
+      <!-- Pagination -->
+      <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+          {% if cars.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ cars.previous_page_number }}" aria-label="Previous">
+              <span aria-hidden="true">&laquo;</span>
+            </a>
+          </li>
+          {% endif %}
+
+          {% for num in cars.paginator.page_range %}
+          <li class="page-item {% if cars.number == num %}active{% endif %}">
+            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+          </li>
+          {% endfor %}
+
+          {% if cars.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ cars.next_page_number }}" aria-label="Next">
+              <span aria-hidden="true">&raquo;</span>
+            </a>
+          </li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+  </div>
+</main>
+
+{% endblock body %}

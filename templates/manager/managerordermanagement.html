@@ -1,0 +1,66 @@
+<!-- templates/dashboard.html -->
+{% extends 'manager/basemanager.html' %} {% block title %}Manager Dashboard{% endblock %} {% block header %}Dashboard Overview{% endblock %} 
+{% block content %}
+
+<!-- Recent Activity Section -->
+<section class="report-section">
+  <h3>Order Management</h3>
+  {% if messages %}
+  <div class="alert-messages">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  <form method="GET" class="form-inline mb-3 search-form">
+    <div class="input-group">
+      <input type="text" name="q" class="form-control search-input custom-input" placeholder="Search Order..." value="{{ query|default:'' }}">
+      <div class="input-group-append">
+        <button type="submit" class="btn btn-primary custom-btn">Search</button>
+      </div>
+    </div>   
+</form>
+  <table class="activity-table">
+    <thead>
+      <tr>
+        <th>Order ID</th>
+        <th>Order Car Name</th>
+        <th>Order Car Model</th>
+        <th>Order Travel</th>
+        <th>Owner</th>
+        <th>Amount</th>
+        <th>end date</th>
+        <th>Approved</th>
+        <th>Actions</th>
+        <!-- New Actions Column -->
+      </tr>
+    </thead>
+    <tbody>
+      {% for order in orders %}
+      <tr>
+        <td>{{ order.id }}</td>
+        <td>{{ order.car.car_name }}</td>
+        <td>{{ order.car.car_model.model_name }}</td>
+        <td>{{ order.bill.from_loc }}-{{order.bill.to_loc}}</td>
+        <td>{{ order.user.first_name }} {{ order.user.last_name }}</td>
+        <td>{{ order.bill.total_rent }}</td>
+        <td>{{ order.bill.rent_end_date }}</td>
+        <td>{{ order.is_approved }}</td>
+        <td>
+          <!-- Action buttons -->
+          <a href="{% url 'manager_edit' order.id  %}"
+          class="btn {% if order.is_approved %}btn-danger{% else %}btn-success{% endif %}">
+         {% if order.is_approved %}Not Approved{% else %}Approve{% endif %}
+       </a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="5">No recent orders found.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+{% endblock %}

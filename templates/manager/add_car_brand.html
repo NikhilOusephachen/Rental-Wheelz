@@ -1,0 +1,35 @@
+{% extends 'manager/basemanager.html' %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'manageraddcar.css' %}">
+
+<div class="container mt-4">
+    <h2 class="mb-4">Add New Brand</h2>
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <!-- Car Name -->
+                    <div class="col-md-6 mb-3">
+                        <label for="name">Brand Name</label>
+                        <input type="text" class="form-control" id="name" name="name" value="{{ form.name.value }}" placeholder="Enter brand name">
+                        {% if form.name.errors %}
+                        <div class="form-error text-danger">{{ form.name.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="form-group mt-4">
+                    <button type="submit" class="btn btn-success">Add Brand</button>
+                    <a href="{% url 'manager_car_brand' %}" class="btn btn-danger">Cancel</a>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends 'manager/basemanager.html' %}
+{% load static %}
+
+{% block title %}View Brand {{ brand.name }}{% endblock %}
+
+{% block header %}Brand Details{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'managerdetialspage.css' %}">
+
+<h3 style="margin: 3px;">Brand #{{ brand.id }} - {{ brand.name }}</h3>
+<section class="car-details container mt-4">
+    
+    <div class="row" style="display: flex;">
+        <!-- Left Column: Car Information -->
+        <div class="col-md-8 car-info">
+            <h3 style="padding-bottom: 4px;">Car Information</h3>
+
+            <p><strong>Brand Name:</strong> {{ brand.name }}</p>
+            <a href="{% url 'manager_car_brand' %}" class="btn btn-back mt-4">Back to Dashboard</a>
+        </div>
+    </div>
+
+</section>
+{% endblock %}

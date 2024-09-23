@@ -1,0 +1,38 @@
+{% extends 'manager/basemanager.html' %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'managereditpage.css' %}">
+<div class="container mt-4">
+    <h2>Edit Car Brand</h2>
+
+    <!-- Start the form -->
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+
+        <!-- First Section: Car Information -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row">
+                    <!-- Car brand Name -->
+                    <div class="col-md-6 mb-3">
+                        <label for="id_brand_name">Brand Name</label>
+                        {{ form.name }}
+                        {{ form.name.errors }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit and Cancel Buttons -->
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+
+            <a href="{% url 'manager_car_brand' %}" class="btn btn-secondary" style="background-color: #dc3545; color: white; border-color: #dc3545;">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
