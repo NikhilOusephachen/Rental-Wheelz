@@ -8,44 +8,59 @@ from django.urls import reverse
 from datetime import datetime, timedelta
 
 
+from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
+from django.utils.dateparse import parse_date
+from datetime import timedelta
+from .models import Car, Bill
+
 @login_required
-def bill(request, id): #car id fetch details
+def bill(request, id):
     car = get_object_or_404(Car, id=id)
+    errors = {}
 
     if request.method == 'POST':
         no_of_days = request.POST.get('dayss', '')
         pick_up_date = request.POST.get('date', '')
         from_loc = request.POST.get('fl', '')
         to_loc = request.POST.get('tl', '')
-        if not no_of_days or not pick_up_date:
-            return HttpResponse("Error: Missing required fields", status=400)
-        try:
-            # Convert no_of_days to integer
-            no_of_days = int(no_of_days)
-        except ValueError:
-            return HttpResponse("Error: Invalid number of days", status=400)
 
-        try:
-            # Convert pick_up_date to a date object
-            pick_up_date = datetime.strptime(
-                pick_up_date, '%Y-%m-%d').date()
-        except ValueError:
-            return HttpResponse("Error: Invalid date format", status=400)
+        # Validate input
+        if not no_of_days:
+            errors['no_of_days'] = "Number of days is required."
+        else:
+            try:
+                no_of_days = int(no_of_days)
+            except ValueError:
+                errors['no_of_days'] = "Invalid number of days."
 
-        # Calculate rent_end_date
-        rent_end_date = pick_up_date + timedelta(days=no_of_days)
-        bill = Bill(
-            car=car,
-            no_of_days=no_of_days,
-            pick_up_date=pick_up_date,
-            from_loc=from_loc,
-            to_loc=to_loc,
-            user=request.user,
-            rent_end_date=rent_end_date
-        )
-        bill.save()
-        return redirect(reverse('order', kwargs={'bill_id': bill.id}))
-    return render(request, 'bill.html', {'car': car})
+        if not pick_up_date:
+            errors['pick_up_date'] = "Pick-up date is required."
+        else:
+            try:
+                pick_up_date = parse_date(pick_up_date)
+                if not pick_up_date:
+                    raise ValueError
+            except ValueError:
+                errors['pick_up_date'] = "Invalid date format. Use YYYY-MM-DD."
+
+        # If there are no errors, proceed with the bill creation
+        if not errors:
+            rent_end_date = pick_up_date + timedelta(days=no_of_days)
+            bill = Bill(
+                car=car,
+                no_of_days=no_of_days,
+                pick_up_date=pick_up_date,
+                from_loc=from_loc,
+                to_loc=to_loc,
+                user=request.user,
+                rent_end_date=rent_end_date
+            )
+            bill.save()
+            return redirect(reverse('order', kwargs={'bill_id': bill.id}))
+    
+    return render(request, 'bill.html', {'car': car, 'errors': errors})
+
 
 @login_required
 def order(request, bill_id):

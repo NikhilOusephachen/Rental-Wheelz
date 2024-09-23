@@ -33,32 +33,59 @@
       <!-- Right Column: Booking Form -->
       <div class="col-md-7">
         <h2 class="text-center my-4">Booking Details</h2>
+        
+        <!-- Error Handling Section -->
+        {% if errors %}
+          <div class="alert alert-danger">
+            <ul>
+              {% for field, error in errors.items %}
+                <li><strong>{{ field }}:</strong> {{ error }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+
         <div class="form-row">
           <div class="form-group col-md-6">
             <label for="dayss">No. of days:</label>
             <input
               type="number"
-              class="form-control"
+              class="form-control {% if errors.no_of_days %}is-invalid{% endif %}"
               id="dayss"
               name="dayss"
               min="1"
               max="30"
+              value="{{ request.POST.dayss }}"
             />
+            {% if errors.no_of_days %}
+              <div class="invalid-feedback">{{ errors.no_of_days }}</div>
+            {% endif %}
           </div>
+
           <div class="form-group col-md-6">
             <label for="date">Pickup Date:</label>
-            <input type="date" class="form-control" id="date" name="date" />
+            <input
+              type="date"
+              class="form-control {% if errors.pick_up_date %}is-invalid{% endif %}"
+              id="date"
+              name="date"
+              min="{{ today_date }}"
+              value="{{ request.POST.date }}"
+            />
+            {% if errors.pick_up_date %}
+              <div class="invalid-feedback">{{ errors.pick_up_date }}</div>
+            {% endif %}
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group col-md-6">
-            <label for="fl">Pick Up Location:</label>
-            <input type="text" class="form-control" id="fl" name="fl" />
+            <label for="fl">From Location:</label>
+            <input type="text" class="form-control" id="fl" name="fl" value="{{ request.POST.fl }}" />
           </div>
           <div class="form-group col-md-6">
-            <label for="tl">Drop Off Location:</label>
-            <input type="text" class="form-control" id="tl" name="tl" />
+            <label for="tl">To Location:</label>
+            <input type="text" class="form-control" id="tl" name="tl" value="{{ request.POST.tl }}" />
           </div>
         </div>
 
@@ -81,10 +108,10 @@
               <strong>Fuel:</strong> <span id="crs4">{{ car.car_fuel.fuel }}</span>
             </li>
             <li class="list-group-item d-flex justify-content-between align-items-center">
-              <strong>Pick Up Location:</strong> <span id="l1">Not specified</span>
+              <strong>From Location:</strong> <span id="l1">Not specified</span>
             </li>
             <li class="list-group-item d-flex justify-content-between align-items-center">
-              <strong>Drop Off Location:</strong> <span id="l2">Not specified</span>
+              <strong>To Location:</strong> <span id="l2">Not specified</span>
             </li>
             <li class="list-group-item d-flex justify-content-between align-items-center">
               <strong>Pickup Date:</strong> <span id="d1">Not specified</span>
@@ -93,7 +120,7 @@
               <strong>No. of Days:</strong> <span id="d2">0</span>
             </li>
             <li class="list-group-item d-flex justify-content-between align-items-center" id="rentsec">
-              Total Rent is: Rs <span>0</span>
+              Total Rent is: <span>₹0</span>
             </li>
           </ul>
         </div>
@@ -117,7 +144,11 @@
   </div>
 </form>
 
+<!-- JavaScript Section -->
 <script>
+  // Set minimum date for pickup date input to today's date
+  document.getElementById('date').setAttribute('min', new Date().toISOString().split('T')[0]);
+
   var carPrice = Number('{{ car.price|default:"0"|escapejs }}');
 
   function calculate(){
