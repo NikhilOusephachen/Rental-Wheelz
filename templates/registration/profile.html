@@ -32,9 +32,17 @@
             <h5 class="card-title">Profile Image</h5>
             <div class="shadow-sm mb-3">
               {% if user.image %}
-                <img src="{{ user.image.url }}" class="img-fluid rounded" alt="Profile Image" style="max-height: 300px; width: auto;">
+                <img src="{{ user.image.url }}" class="img-fluid rounded" alt="Profile Image" style="max-height: 200px; width: auto;">
               {% else %}
                 <img src="{% static 'avatar.jpg' %}" class="img-fluid rounded" alt="Default Profile Image" style="max-height: 300px; width: auto;">
+              {% endif %}
+            </div>
+            <h2>Driving Licence </h2>
+            <div class="shadow-sm mb-3">
+              {% if user.driving_licence %}
+                <img src="{{ user.driving_licence.url }}" class="img-fluid rounded" alt="driving licence Image" style="max-height: 200px; width: auto;">
+              {% else %}
+                <img src="{% static 'avatar.jpg' %}" class="img-fluid rounded" alt="Default driving licence Image" style="max-height: 300px; width: auto;">
               {% endif %}
             </div>
             <!-- Image Upload Form -->

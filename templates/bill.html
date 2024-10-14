@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
 {% block title %}
-{{ car.car_name }} - Rent it!
+  {{ car.car_name }} - Rent it!
 {% endblock title %}
 {% load static %}
 <link rel="stylesheet" href="{% static 'style.css' %}" />
 
 {% block body %}
-<form method="post">
+<form method="post" id="bookingForm" onsubmit="return validateForm()">
   {% csrf_token %}
   <div class="container my-4">
     <div class="row">
@@ -33,7 +33,7 @@
       <!-- Right Column: Booking Form -->
       <div class="col-md-7">
         <h2 class="text-center my-4">Booking Details</h2>
-        
+
         <!-- Error Handling Section -->
         {% if errors %}
           <div class="alert alert-danger">
@@ -45,6 +45,7 @@
           </div>
         {% endif %}
 
+        <!-- Booking Form -->
         <div class="form-row">
           <div class="form-group col-md-6">
             <label for="dayss">No. of days:</label>
@@ -56,6 +57,7 @@
               min="1"
               max="30"
               value="{{ request.POST.dayss }}"
+              required
             />
             {% if errors.no_of_days %}
               <div class="invalid-feedback">{{ errors.no_of_days }}</div>
@@ -71,6 +73,7 @@
               name="date"
               min="{{ today_date }}"
               value="{{ request.POST.date }}"
+              required
             />
             {% if errors.pick_up_date %}
               <div class="invalid-feedback">{{ errors.pick_up_date }}</div>
@@ -81,11 +84,29 @@
         <div class="form-row">
           <div class="form-group col-md-6">
             <label for="fl">From Location:</label>
-            <input type="text" class="form-control" id="fl" name="fl" value="{{ request.POST.fl }}" />
+            <input
+              type="text"
+              class="form-control"
+              id="fl"
+              name="fl"
+              value="{{ request.POST.fl }}"
+              pattern="[A-Za-z\s-]+"
+              title="Please enter a valid location (letters, spaces, and hyphens only)"
+              required
+            />
           </div>
           <div class="form-group col-md-6">
             <label for="tl">To Location:</label>
-            <input type="text" class="form-control" id="tl" name="tl" value="{{ request.POST.tl }}" />
+            <input
+              type="text"
+              class="form-control"
+              id="tl"
+              name="tl"
+              value="{{ request.POST.tl }}"
+              pattern="[A-Za-z\s-]+"
+              title="Please enter a valid location (letters, spaces, and hyphens only)"
+              required
+            />
           </div>
         </div>
 
@@ -108,10 +129,10 @@
               <strong>Fuel:</strong> <span id="crs4">{{ car.car_fuel.fuel }}</span>
             </li>
             <li class="list-group-item d-flex justify-content-between align-items-center">
-              <strong>From Location:</strong> <span id="l1">Not specified</span>
+              <strong>Pick Up Location:</strong> <span id="l1">Not specified</span>
             </li>
             <li class="list-group-item d-flex justify-content-between align-items-center">
-              <strong>To Location:</strong> <span id="l2">Not specified</span>
+              <strong>Drop Off Location:</strong> <span id="l2">Not specified</span>
             </li>
             <li class="list-group-item d-flex justify-content-between align-items-center">
               <strong>Pickup Date:</strong> <span id="d1">Not specified</span>
@@ -127,16 +148,7 @@
 
         <!-- Buttons: Display Bill and Confirm Booking -->
         <div class="text-center">
-          <button
-            class="btn btn-primary"
-            type="button"
-            data-toggle="modal"
-            data-target="#exampleModalLong"
-            id="showre"
-            onclick="calculate()"
-          >
-            Display Bill
-          </button>
+          <button class="btn btn-primary" type="button" onclick="calculate()">Display Bill</button>
           <button class="btn btn-primary" type="submit">Confirm Booking</button>
         </div>
       </div>
@@ -151,23 +163,54 @@
 
   var carPrice = Number('{{ car.price|default:"0"|escapejs }}');
 
-  function calculate(){
+  // Calculate total rent and update the bill
+  function calculate() {
+    var daysInput = document.getElementById("dayss");
+    var fromLocation = document.getElementById("fl").value;
+    var toLocation = document.getElementById("tl").value;
+
+    if (!daysInput.value || daysInput.value < 1) {
+      alert("Please enter a valid number of days (1 or more).");
+      return;
+    }
+
+    if (!/^[A-Za-z\s-]+$/.test(fromLocation) || !/^[A-Za-z\s-]+$/.test(toLocation)) {
+      alert("Please enter valid locations (letters, spaces, and hyphens only).");
+      return;
+    }
+
     var rent = carPrice;
-    var days = Number(document.getElementById("dayss").value);
+    var days = Number(daysInput.value);
     var total = rent * days;
 
     document.getElementById("rentsec").querySelector("span").textContent = total;
 
-    var fromLoc = document.getElementById("fl").value;
-    document.getElementById("l1").textContent = fromLoc;
-
-    var toLoc = document.getElementById("tl").value;
-    document.getElementById("l2").textContent = toLoc;
+    document.getElementById("l1").textContent = fromLocation;
+    document.getElementById("l2").textContent = toLocation;
 
     var date = document.getElementById("date").value;
     document.getElementById("d1").textContent = date;
 
     document.getElementById("d2").textContent = days;
+  }
+
+  // Form validation before submission
+  function validateForm() {
+    var days = document.getElementById("dayss").value;
+    var fromLocation = document.getElementById("fl").value;
+    var toLocation = document.getElementById("tl").value;
+
+    if (days < 1) {
+      alert("No. of days must be at least 1.");
+      return false;
+    }
+
+    if (!/^[A-Za-z\s-]+$/.test(fromLocation) || !/^[A-Za-z\s-]+$/.test(toLocation)) {
+      alert("Please enter valid From and To locations (letters, spaces, and hyphens only).");
+      return false;
+    }
+
+    return true;
   }
 </script>
 

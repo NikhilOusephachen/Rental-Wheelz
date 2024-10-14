@@ -4,12 +4,14 @@ form {
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
 }
 
 /* Labels */
 form label {
     font-weight: bold;
     color: #495057; /* Dark grey for labels */
+    margin-bottom: 8px;
 }
 
 /* Input fields */
@@ -17,13 +19,31 @@ form .form-control {
     border: 2px solid #ced4da; /* Slightly thicker borders */
     border-radius: 4px;
     transition: all 0.3s ease-in-out;
-    margin-left: 5px;
     padding: 10px;
+    margin-bottom: 15px;
 }
 
 form .form-control:focus {
     border-color: #007bff; /* Blue border when focused */
     box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Glow effect */
+}
+
+/* Specific input fields */
+#id_color, #id_model_name, #id_brand, #id_name {
+    width: 100%;
+    padding: 12px 15px;
+    margin-top: 8px;
+    margin-bottom: 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 16px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+#id_color:focus, #id_model_name:focus, #id_brand:focus, #id_name:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
 }
 
 /* Textareas */
@@ -64,12 +84,29 @@ form button.btn-secondary:hover {
     background-color: #565e64;
 }
 
+/* Cancel button with red style */
+.btn-cancel {
+    background-color: #dc3545; /* Bootstrap's danger color (red) */
+    color: rgb(48, 46, 46);
+    border-color: #dc3545;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 4px;
+    transition: background-color 0.3s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.btn-cancel:hover {
+    background-color: #c82333; /* Darker red on hover */
+    box-shadow: 0 4px 12px rgba(200, 35, 51, 0.2);
+}
+
 /* Checkbox styling */
 form .form-check-input {
     width: 20px;
     height: 20px;
     border-radius: 5px;
     border: 2px solid #007bff;
+    margin-right: 10px;
 }
 
 form .form-check-input:checked {
@@ -89,7 +126,7 @@ h2 {
     margin-bottom: 20px;
 }
 
-/* Add some padding to the form container */
+/* Container padding */
 .container {
     padding-top: 20px;
 }
@@ -102,7 +139,7 @@ h2 {
 /* Adjust the look of the cancel button link */
 a.btn-secondary {
     text-decoration: none;
-    color: #fff;
+    color: #cf4848;
     padding: 10px 20px;
     display: inline-block;
     margin-left: 10px;
@@ -114,30 +151,4 @@ a.btn-secondary {
         width: 100%;
         margin-bottom: 10px;
     }
-}
-
-.btn-cancel {
-    background-color: #dc3545; /* Bootstrap's danger color (red) */
-    color: white;
-    border-color: #dc3545;
-    padding: 10px 20px;
-    font-size: 16px;
-    border-radius: 4px;
-    transition: background-color 0.3s ease-in-out, box-shadow 0.2s ease-in-out;
-}
-
-.btn-cancel:hover {
-    background-color: #c82333; /* Darker red on hover */
-    box-shadow: 0 4px 12px rgba(200, 35, 51, 0.2);
-}
-#id_color,#id_model_name, #id_brand, #id_name {
-    width: 100%;
-    padding: 12px 15px;
-    margin-top: 8px;
-    margin-bottom: 12px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-sizing: border-box;
-    font-size: 16px;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }

@@ -11,7 +11,8 @@ class UserType(models.Model):
 class CustomUser(AbstractUser):
     usertype = models.ForeignKey(UserType, on_delete=models.CASCADE, related_name='users',null=True)
     phone_number = models.CharField(max_length=15, blank=True, null=True)
-    image = models.ImageField(upload_to="car/images", default="")
+    image = models.ImageField(upload_to="user/images", default="")
+    driving_licence = models.ImageField(upload_to="user/driving_licene", default="")
 
 
     def __str__(self):

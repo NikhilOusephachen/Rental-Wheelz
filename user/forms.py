@@ -30,13 +30,14 @@ class CustomUserCreationForm(UserCreationForm):
                 'password2': "The two password fields didn’t match.",
             })
         return cleaned_data
-    
+
+
 class ProfileUpdateForm(forms.ModelForm):
     class Meta:
         model = CustomUser
-        fields = ['first_name', 'last_name', 'email', 'phone_number', 'image']
+        fields = ['first_name', 'last_name', 'email',
+                  'phone_number', 'image', 'driving_licence']
         widgets = {
             'phone_number': forms.TextInput(attrs={'maxlength': '15'}),
             'image': forms.ClearableFileInput(attrs={'class': 'form-control'})
         }
-

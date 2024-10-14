@@ -107,6 +107,22 @@
                         </select>
                     </div>
 
+                    <div class="col-md-6 mb-3"></div>
+                        <label for="insurance_number">Insurance Number</label>
+                        <input type="text" class="form-control" id="insurance_number" name="insurance_number" value="{{ form.insurance_number.value }}">
+                        {% if form.insurance_number.errors %}
+                        <div class="form-error text-danger">{{ form.insurance_number.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="insurance_file">Insurance File</label>
+                        <input type="file" class="form-control-file" id="insurance_file" name="insurance_file">
+                        {% if form.insurance_file.value %}
+                            <img src="{{ form.insurance_file.value.url }}" alt="{{ form.insurance_file.value }}" class="img-thumbnail mt-2" width="200">
+                        {% endif %}
+                    </div>
+
                     <!-- Year -->
                     <div class="col-md-6 mb-3">
                         <label for="year">Year</label>

@@ -63,6 +63,8 @@ class Car(models.Model):
     available = models.BooleanField(default=False)
     price = models.IntegerField(default=0)
     image = models.ImageField(upload_to="car/images", default="")
+    insurance_number = models.CharField(max_length=50, default="", blank=True)
+    insurance_file = models.FileField(upload_to="car/insurance_files", blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

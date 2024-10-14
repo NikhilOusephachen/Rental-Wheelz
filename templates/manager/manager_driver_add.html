@@ -1,0 +1,103 @@
+{% extends 'manager/basemanager.html' %} {% block title %}Manager Dashboard{% endblock %} {% block header %}Dashboard Overview{% endblock %} 
+{% block content %}
+    <style>
+        /* Include your form styling */
+        /* General form styling */
+        form {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Labels */
+        form label {
+            font-weight: bold;
+            color: #495057;
+        }
+
+        /* Input fields */
+        form .form-control {
+            border: 2px solid #ced4da;
+            border-radius: 4px;
+            transition: all 0.3s ease-in-out;
+            margin-left: 5px;
+            padding: 10px;
+        }
+
+        form .form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+
+        /* Checkbox styling */
+        form .form-check-input {
+            width: 20px;
+            height: 20px;
+            border-radius: 5px;
+            border: 2px solid #007bff;
+        }
+
+        form .form-check-input:checked {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+
+        /* Buttons */
+        form button.btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 4px;
+            transition: background-color 0.3s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+
+        form button.btn-primary:hover {
+            background-color: #0056b3;
+            box-shadow: 0 4px 12px rgba(0, 91, 179, 0.2);
+        }
+
+        .btn-cancel {
+            background-color: #dc3545;
+            color: white;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 4px;
+            margin-left: 10px;
+            transition: background-color 0.3s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+
+        .btn-cancel:hover {
+            background-color: #c82333;
+            box-shadow: 0 4px 12px rgba(200, 35, 51, 0.2);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Add Driver</h2>
+    <form method="POST" action="{% url 'manager_driver_add' %}">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="id_name">Driver Name</label>
+            <input type="text" class="form-control" id="id_name" name="name" placeholder="Enter driver name" required>
+        </div>
+        <div class="form-group">
+            <label for="id_license_number">License Number</label>
+            <input type="text" class="form-control" id="id_license_number" name="license_number" placeholder="Enter license number" required>
+        </div>
+        <div class="form-group">
+            <label for="id_phone_number">Phone Number</label>
+            <input type="tel" class="form-control" id="id_phone_number" name="phone_number" placeholder="Enter phone number" required>
+        </div>
+        <div class="form-group form-check">
+            <input type="checkbox" class="form-check-input" id="id_is_available" name="is_available">
+            <label class="form-check-label" for="id_is_available">Available</label>
+        </div>
+        <button type="submit" class="btn btn-primary">Add Driver</button>
+        <a href="{% url 'manager_car_drivers' %}" class="btn-cancel">Cancel</a>
+    </form>
+</div>
+{% endblock %}

@@ -25,7 +25,6 @@
       <tr>
         <th>Order ID</th>
         <th>Order Car Name</th>
-        <th>Order Car Model</th>
         <th>Order Travel</th>
         <th>Owner</th>
         <th>Amount</th>
@@ -40,7 +39,6 @@
       <tr>
         <td>{{ order.id }}</td>
         <td>{{ order.car.car_name }}</td>
-        <td>{{ order.car.car_model.model_name }}</td>
         <td>{{ order.bill.from_loc }}-{{order.bill.to_loc}}</td>
         <td>{{ order.user.first_name }} {{ order.user.last_name }}</td>
         <td>{{ order.bill.total_rent }}</td>
@@ -48,6 +46,7 @@
         <td>{{ order.is_approved }}</td>
         <td>
           <!-- Action buttons -->
+          <a href="{% url 'manager_order_details' order.id %}" class="btn btn-view btn-sm">View</a>
           <a href="{% url 'manager_edit' order.id  %}"
           class="btn {% if order.is_approved %}btn-danger{% else %}btn-success{% endif %}">
          {% if order.is_approved %}Not Approved{% else %}Approve{% endif %}

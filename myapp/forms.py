@@ -3,13 +3,14 @@ from django import forms
 from .models import Car, Brand, CarModel, CarColor
 
 
+
 class CarForm(forms.ModelForm):
     class Meta:
         model = Car
         fields = [
             'car_name', 'car_desc', 'car_brand', 'car_model',
             'car_color', 'car_fuel', 'transmission', 'year',
-            'available', 'price', 'image'
+            'available', 'price', 'image','insurance_number','insurance_file'
         ]
         widgets = {
             'car_desc': forms.Textarea(attrs={'rows': 3}),

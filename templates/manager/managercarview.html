@@ -25,6 +25,13 @@
             <p><strong>Year:</strong> {{ car.year }}</p>
             <p><strong>Available:</strong> {% if car.available %}Yes{% else %}No{% endif %}</p>
             <p><strong>Price:</strong> ₹{{ car.price }}</p>
+            <p><strong>Insurance Number:</strong> {{ car.insurance_number }}</p>
+            {% if car.insurance_file %}
+    <p><strong>Insurance File:</strong> <a href="{{ car.insurance_file.url }}" download>Download</a></p>
+{% else %}
+    <p><strong>Insurance File:</strong> No file available</p>
+{% endif %}
+
             <p><strong>Date Added:</strong> {{ car.created_at|date:"Y-m-d H:i" }}</p>
             <a href="{% url 'manager_car_management' %}" class="btn btn-back mt-4">Back to Dashboard</a>
         </div>

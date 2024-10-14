@@ -1,0 +1,43 @@
+{% extends 'manager/basemanager.html' %}
+{% load static %}
+
+{% block title %}Edit Driver{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'managereditpage.css' %}">
+<div class="container mt-5">
+    <h2 class="text-center">Edit Driver Information</h2>
+
+    <form method="POST" action="{% url 'manager_driver_edit' driver.id %}">
+        {% csrf_token %}
+        
+        <!-- Name Field -->
+        <div class="form-group">
+            <label for="name">Driver Name</label>
+            <input type="text" class="form-control" id="name" name="name" value="{{ driver.name }}" required>
+        </div>
+
+        <!-- License Number Field -->
+        <div class="form-group">
+            <label for="license_number">License Number</label>
+            <input type="text" class="form-control" id="license_number" name="license_number" value="{{ driver.license_number }}" required>
+        </div>
+
+        <!-- Phone Number Field -->
+        <div class="form-group">
+            <label for="phone_number">Phone Number</label>
+            <input type="text" class="form-control" id="phone_number" name="phone_number" value="{{ driver.phone_number }}" required>
+        </div>
+
+        <!-- Availability Checkbox -->
+        <div class="form-group form-check">
+            <input type="checkbox" class="form-check-input" id="is_available" name="is_available" {% if driver.is_available %}checked{% endif %}>
+            <label class="form-check-label" for="is_available">Is Available</label>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <a href="{% url 'manager_car_drivers' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

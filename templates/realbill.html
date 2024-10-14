@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Bill Details
+{% endblock title %}
+
+{% block body %}
+<div class="container my-5" id="print-section">
+    <!-- Receipt Title -->
+    <h2 class="text-center mb-4">RENTAL WHEELZ RECEIPT</h2>
+
+    <!-- Main Card for Content -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+
+            <!-- Date and Receipt # -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <p><strong>Date:</strong> {{ current_date }}</p>
+                </div>
+                <div class="col-md-6 text-right">
+                    <p><strong>Receipt #:</strong> {{ order.id }}</p>
+                </div>
+            </div>
+
+            <!-- Rental Company and Lessee Info -->
+            <div class="row mb-4 border-bottom pb-4 mt-3">
+                <div class="col-md-6">
+                    <h5 class="border-bottom pb-2"><strong>Rental Company Info</strong></h5>
+                    <p><strong>Company:</strong> Rental Wheelz</p>
+                    <p><strong>Representative:</strong> Manager</p>
+                    <p><strong>Location:</strong> Thayil House Behind Bishops House Changanacherry</p>
+                    <p><strong>City/State/ZIP:</strong> Changanacherry</p>
+                    <p><strong>Phone:</strong> 0481-2420986</p>
+                </div>
+
+                <div class="col-md-6">
+                    <h5 class="border-bottom pb-2"><strong>Customer Info</strong></h5>
+                    <p><strong>Name:</strong> {{ order.user.first_name }} {{ order.user.last_name }}</p>
+                    <p><strong>Email:</strong> {{ order.user.email }}</p>
+                    <p><strong>Address:</strong> {{ order.address }}</p>
+                    <p><strong>Phone:</strong> {{ order.user.phone_number }}</p>
+                </div>
+            </div>
+
+            <!-- Vehicle Information and Pickup/Dropoff Details -->
+            <div class="row border-bottom pb-4">
+                <div class="col-md-6">
+                    <h5 class="border-bottom pb-2"><strong>Vehicle Information</strong></h5>
+                    <p><strong>Make:</strong> {{ order.car.car_name }}</p>
+                    <p><strong>Model:</strong> {{ order.car.car_model.model_name }}</p>
+                    <p><strong>Year:</strong> {{ order.car.year }}</p>
+                    <p><strong>Color:</strong> {{ order.car.car_color.color }}</p>
+                    <p><strong>Insurance Number:</strong> {{ order.car.insurance_number }}</p>
+                </div>
+
+                <div class="col-md-6">
+                    <h5 class="border-bottom pb-2"><strong>Pickup & Dropoff Details</strong></h5>
+                    <p><strong>Pickup Location:</strong> {{ order.bill.from_loc }}</p>
+                    <p><strong>Dropoff Location:</strong> {{ order.bill.to_loc }}</p>
+                    <p><strong>Pickup Date:</strong> {{ order.bill.pick_up_date }}</p>
+                </div>
+            </div>
+
+            <!-- Bill Table -->
+            <table class="table table-bordered mt-4">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">Make</th>
+                        <th scope="col">Cost/Day</th>
+                        <th scope="col">Number of Days</th>
+                        <th scope="col">Additional Costs</th>
+                        <th scope="col">Line Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{ order.car.car_name }}</td>
+                        <td>₹{{ order.car.price }}</td>
+                        <td>{{ order.bill.no_of_days }}</td>
+                        <td>₹0</td>
+                        <td>₹{{ order.bill.total_rent }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Payment Method and Totals -->
+            <div class="row mt-4 border-top pt-4">
+                <div class="col-md-6">
+                    <p><strong>Payment Status:</strong></p>
+                    {% if order.payment_status %}
+                        <p class="text-success">Paid</p>
+                    {% else %}
+                        <p class="text-danger">Not Paid</p>
+                    {% endif %}
+                </div>
+                <div class="col-md-6 text-right">
+                    <p><strong>Subtotal:</strong> ₹{{ order.bill.total_rent }}</p>
+                    <p><strong>Tax (X%):</strong> ₹0</p>
+                    <p><strong>Total:</strong> ₹{{ order.bill.total_rent }}</p>
+                    <p><strong>Amount Paid:</strong> ₹{{ order.bill.total_rent }}</p>
+                </div>
+            </div>
+
+            <!-- Authorized Signature and Representative Name -->
+            <div class="row mt-5 border-top pt-4">
+                <div class="col-md-6">
+                    <p><strong>Authorized Signature:</strong> ____________________________</p>
+                </div>
+                <div class="col-md-6 text-right">
+                    <p><strong>Representative Name:</strong> Manager</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Print Button -->
+<div class="text-center mt-5">
+    <button class="btn btn-primary" onclick="printOrderDetails()">Print Bill</button>
+</div>
+
+<!-- JavaScript for Printing -->
+<script>
+    function printOrderDetails() {
+        const printSection = document.getElementById('print-section').cloneNode(true);
+
+        const printWindow = window.open('', '_blank', 'width=800,height=600');
+        printWindow.document.write(`
+            <html>
+            <head>
+                <title>Print Bill</title>
+                <style>
+                    @media print {
+                        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+                        .container { width: auto; margin: 0 auto; padding: 20px; }
+                        .card { border: 1px solid #000; padding: 20px; }
+                        .table-bordered th, .table-bordered td { border: 1px solid #000 !important; }
+                        h5 { border-bottom: 1px solid #000; padding-bottom: 5px; }
+                        .row { margin-bottom: 10px; }
+                        .text-right { text-align: right; }
+                        .text-center { text-align: center; }
+                        html, body { width: 100%; height: 100%; margin: 0; padding: 0; }
+                        .container, .card-body { max-height: 100%; overflow: hidden; }
+                        @page { margin: 20mm; }
+                        header, footer { display: none; }
+                    }
+                </style>
+            </head>
+            <body>
+                ${printSection.innerHTML}
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+        printWindow.focus();
+        printWindow.print();
+        printWindow.close();
+    }
+</script>
+{% endblock body %}

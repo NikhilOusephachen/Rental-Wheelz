@@ -1,0 +1,88 @@
+{% extends 'manager/basemanager.html' %}
+
+{% block title %}
+Order Details - {{ order.car.car_name }}
+{% endblock title %}
+
+{% load static %}
+
+{% block content %}
+<div class="container my-5">
+    <h2 class="text-center mb-4">Order Details</h2>
+    {% if messages %}
+    <div class="alert-messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <div class="order-details-container">
+        <!-- Left Column: Order Details -->
+        <div class="order-details shadow-sm mb-4">
+            <h5>Order ID: {{ order.id }}</h5>
+            <p><strong>Customer Name:</strong> {{ order.user.get_full_name }}</p>
+            <p><strong>Email:</strong> {{ order.user.email }}</p>
+            <p><strong>Phone:</strong> {{ order.user.phone_number }}</p> <!-- Assuming user has a profile with phone number -->
+            <p><strong>Driving Licence:</strong> <a href="{{order.user.driving_licence.url}}" download="{{order.user.first_name}}License.jpg" class="btn btn-primary">
+                Download File
+            </a></p>
+            <hr>
+            <p><strong>Car Name:</strong> {{ order.car.car_name }}</p>
+            <p><strong>Car Model:</strong> {{ order.car.car_model.model_name }}</p>
+            <p><strong>Pickup Date:</strong> {{ order.bill.pick_up_date }}</p>
+            <p><strong>Rent End Date:</strong> {{ order.bill.rent_end_date }}</p>
+            <p><strong>Total Rent:</strong> ₹{{ order.bill.total_rent }}</p>
+            <p><strong>From Location:</strong> {{ order.bill.from_loc }}</p>
+            <p><strong>To Location:</strong> {{ order.bill.to_loc }}</p>
+            <p><strong>Address:</strong> {{ order.address }}</p>
+            <p><strong>Status:</strong> {% if order.is_approved %} Approved {% else %} Not Approved {% endif %}</p>
+            <p><strong>Payment Status:</strong> {% if order.payment_status %} Paid {% else %} Unpaid {% endif %}</p>
+        </div>
+
+        <!-- Right Column: Car Image and Driver Assignment -->
+        <div class="car-image-container">
+            <img src="{{ order.car.image.url }}" class="img-fluid mb-4" alt="{{ order.car.car_name }}">
+            
+            <div class="driver-assignment">
+                <h5>Driver Assignment</h5>
+                <div class="alert alert-info">
+                    {% if order.is_assigned %}
+                        <strong>Assigned Driver:</strong> {{ order.driverassignment.driver.name }} <br>
+                        <strong>License Number:</strong> {{ order.driverassignment.driver.license_number }} <br>
+                        <strong>Phone Number:</strong> {{ order.driverassignment.driver.phone_number }}
+                    {% else %}
+                        <strong>No Driver Assigned Yet</strong>
+                    {% endif %}
+                </div>
+            
+                <!-- Driver Assignment Form -->
+                <form method="POST" action="{% url 'manager_order_details' order.id %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="driverSelect">Select Driver:</label>
+                        <select name="driver_id" id="driverSelect" class="form-control" 
+                                {% if order.is_assigned %} disabled {% endif %}>
+                            <option value="">-- Choose a Driver --</option>
+                            {% for driver in available_drivers %}
+                                <option value="{{ driver.id }}"
+                                    {% if order.is_assigned and order.driverassignment.driver.id == driver.id %} selected {% endif %}>
+                                    {{ driver.name }} ({{ driver.license_number }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+            
+                    <button type="submit" class="btn btn-primary mt-3" 
+                            {% if order.is_assigned %} disabled {% endif %}>
+                        Assign Driver
+                    </button>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- Back to Orders Button -->
+        <a href="{% url 'manager_order_management' %}" class="btn btn-back mt-4">Back to Orders</a>
+</div>
+{% endblock %}

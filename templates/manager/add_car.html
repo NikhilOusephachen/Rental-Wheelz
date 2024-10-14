@@ -123,6 +123,22 @@
                         {% endif %}
                     </div>
 
+                    <div class="col-md-6 mb-3"></div>
+                        <label for="insurance_number">Insurance Number</label>
+                        <input type="text" class="form-control" id="insurance_number" name="insurance_number">
+                        {% if form.insurance_number.errors %}
+                        <div class="form-error text-danger">{{ form.insurance_number.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6 mb-3"></div>
+                        <label for="insurance_file">Insurance File</label>
+                        <input type="file" class="form-control-file" id="insurance_file" name="insurance_file">
+                        {% if form.insurance_file.errors %}
+                        <div class="form-error text-danger">{{ form.insurance_file.errors }}</div>
+                        {% endif %}
+                    </div>
+
                     <!-- Availability -->
                     <div class="col-md-6 mb-3">
                         <label for="available">Available</label>

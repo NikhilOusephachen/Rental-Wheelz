@@ -35,6 +35,24 @@ class Order(models.Model):
     driving_license = models.ImageField(upload_to='license_image/')
     bill = models.ForeignKey(Bill, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
+    is_assigned = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Order for {self.car} by {self.user} from {self.bill}"
+
+class Driver(models.Model):
+    name = models.CharField(max_length=100)
+    license_number = models.CharField(max_length=50)
+    phone_number = models.CharField(max_length=15)
+    is_available = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
+    
+class DriverAssignment(models.Model):
+    order = models.OneToOneField(Order, on_delete=models.CASCADE)
+    driver = models.ForeignKey(Driver, on_delete=models.SET_NULL, null=True)
+    assigned_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Driver {self.driver.name} assigned to Order #{self.order.id}"

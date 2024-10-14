@@ -53,6 +53,12 @@ Car Details
               </li>
               <li><strong>Year:</strong> {{ car.year }}</li>
               <li><strong>Price per Day:</strong> ₹{{ car.price }}</li>
+              <li><strong>Insurance Number:</strong> {{ car.insurance_number }}</li>
+              {% if car.insurance_file %}
+    <p><strong>Insurance File:</strong> <a href="{{ car.insurance_file.url }}" download>Download</a></p>
+{% else %}
+    <p><strong>Insurance File:</strong> No file available</p>
+{% endif %}
               <li>
                 <strong>Available:</strong>
                 <span

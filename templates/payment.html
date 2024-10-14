@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block title %}
+payment - ₹{{ amount }}
+{% endblock title %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'style.css' %}" />
+
+{% block body %}
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    <h1>Make a Payment</h1>
+    <button id="payButton">Pay ₹{{ amount }}</button>
+
+    <script>
+        document.getElementById('payButton').onclick = function () {
+            fetch('/make_payment/{{ amount }}/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.order_id) {
+                    var options = {
+                        "key": "rzp_test_i1eV0ftB0HVfyt",
+                        "amount": data.amount,
+                        "currency": data.currency,
+                        "name": "Rental Wheelz",
+                        "description": "UPI Payment",
+                        "order_id": data.order_id,
+                        "handler": function (response) {
+                            console.log(response);
+                            alert('Payment successful! Payment ID: ' + response.razorpay_payment_id);
+
+                            // Send the payment response to the server for further processing (if needed)
+                            fetch('/payment_success/', {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRFToken': '{{ csrf_token }}',
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    payment_id: response.razorpay_payment_id,
+                                    order_id: response.razorpay_order_id,
+                                    signature: response.razorpay_signature
+                                })
+                            })
+                            .then(res => res.json())
+                            .then(result => {
+                                if (result.status === 'success') {
+                                    alert('Payment verified successfully!');
+                                } else {
+                                    alert('Payment verification failed!');
+                                }
+                            })
+                            .catch(err => {
+                                console.error('Error during payment verification:', err);
+                            });
+                        },
+                        "prefill": {
+                            "name": "{{request.user.first_name}}",
+                            "email": "{{request.user.email}}",
+                            "contact": "9999999999"
+                        },
+                        "theme": {
+                            "color": "#F37254"
+                        }
+                    };
+                    var rzp1 = new Razorpay(options);
+                    rzp1.open();
+                } else {
+                    alert(data.error);
+                }
+            });
+        }
+    </script>
+
+{% endblock %}

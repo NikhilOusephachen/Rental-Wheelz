@@ -11,6 +11,9 @@ from django.contrib.auth.views import LoginView
 from django.urls import reverse_lazy
 from django.contrib.auth.decorators import login_required
 from django.views.generic import UpdateView
+from django.views.decorators.cache import cache_control
+from django.utils.decorators import method_decorator
+from django.contrib.auth import logout
 
 
 def register_view(request):
@@ -48,12 +51,28 @@ class CustomLoginView(LoginView):
     template_name = 'login.html'
     success_url = reverse_lazy('vehicles')
 
-    # overiding dispatch method will handle all http menthods
-    def dispatch(self, request, *args, **kwargs):
-        if self.request.user.is_authenticated:
-            # Redirect to the vehicles page if the user is already logged in
-            return redirect('vehicles')
-        return super().dispatch(request, *args, **kwargs)
+    def post(self, request, *args, **kwargs):
+        # Get the credentials from the POST data
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        # Authenticate the user
+        user = authenticate(request, username=username, password=password)
+
+        # Check if authentication was successful
+        if user is not None:
+            # Check if the user type is "customer"
+            if hasattr(user, 'usertype') and user.usertype.name.lower() == 'customer':
+                # Log in the user if they are not a "customer"
+                login(request, user)
+                return redirect(self.success_url)
+
+            # Add a message and redirect to the login page
+            messages.error(request, "Access denied for customers.")
+            return redirect('login')
+
+        # If the user could not be authenticated, proceed as usual (default LoginView behavior)
+        return super().post(request, *args, **kwargs)
 
 
 def logout_view(request):
