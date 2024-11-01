@@ -1,23 +1,21 @@
-{% extends 'base.html' %}
-{% block title %}
-  {{ car.car_name }} - Rent it!
-{% endblock title %}
+{% extends 'base.html' %} 
+{% block title %} {{ car.car_name }} - Rent it! {% endblock title %} 
 {% load static %}
 <link rel="stylesheet" href="{% static 'style.css' %}" />
-
 {% block body %}
-<form method="post" enctype="multipart/form-data">
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<form method="post" id="bookingForm"  enctype="multipart/form-data">
   {% csrf_token %}
   <div class="container my-4">
     <div class="row">
       <!-- Left Column: Car and User Details -->
       <div class="col-md-6">
         <!-- User Card -->
-        <div class="card mb-4 shadow-sm" style="border-radius: 5px;">
+        <div class="card mb-4 shadow-sm" style="border-radius: 5px">
           <div class="card-body">
             <h5 class="card-title">User Information</h5>
             <p class="card-text">
-              <strong>Name:</strong> {{ bill.user.first_name }} {{ bill.user.last_name }}<br />
+              <strong>Name:</strong> {{ bill.user.first_name }} {{bill.user.last_name }}<br />
               <strong>Email:</strong> {{ bill.user.email }}<br />
               <strong>Phone:</strong> {{ bill.user.phone_number }}<br />
             </p>
@@ -25,21 +23,26 @@
         </div>
 
         <!-- Car Details Card -->
-        <div class="card mb-4 shadow-sm" style="border-radius: 5px;">
+        <div class="card mb-4 shadow-sm" style="border-radius: 5px">
           <div class="row no-gutters">
             <div class="col-md-8">
               <div class="card-body">
                 <h5 class="card-title">Car Information</h5>
                 <p class="card-text">
                   <strong>Car Name:</strong> {{ bill.car.car_name }}<br />
-                  <strong>Car Model:</strong> {{ bill.car.car_model.model_name }}<br />
+                  <strong>Car Model:</strong> {{ bill.car.car_model.model_name}}<br />
                   <strong>Color:</strong> {{ bill.car.car_color.color }}<br />
                   <strong>Fuel Type:</strong> {{ bill.car.car_fuel.fuel }}<br />
                 </p>
               </div>
             </div>
             <div class="col-md-4">
-              <img src="{{ bill.car.image.url }}" class="card-img" alt="{{ bill.car.car_name }}" style="height: 100%; object-fit: cover;">
+              <img
+                src="{{ bill.car.image.url }}"
+                class="card-img"
+                alt="{{ bill.car.car_name }}"
+                style="height: 100%; object-fit: cover"
+              />
             </div>
           </div>
         </div>
@@ -47,25 +50,56 @@
 
       <!-- Right Column: Booking Form -->
       <div class="col-md-6">
-        <div class="card mb-4 shadow-sm" style="border-radius: 5px;">
+        <div class="card mb-4 shadow-sm" style="border-radius: 5px">
           <div class="card-body">
             <h5 class="card-title text-center">Booking Details</h5>
-            
+
             <!-- Booking Form Fields -->
             <div class="form-group">
               <label for="address">Address:</label>
-              <input type="text" class="form-control" id="address" name="address" required />
+              <input
+                type="text"
+                class="form-control"
+                id="address"
+                name="address"
+                required
+              />
             </div>
 
             <!-- Driving License Upload -->
+             {% if request.user.driving_licence %}
+              <input
+                type="file"
+                class="form-control-file"
+                id="driving_license"
+                name="driving_license"
+                accept=".pdf,image/*"
+                value= "{{request.user.driving_licence}}"
+                hidden
+              />
+              <p> You Already Uploaded the Driving License </p>
+             {% else %}
             <div class="form-group">
               <label for="driving_license">Upload Driving License:</label>
-              <input type="file" class="form-control-file" id="driving_license" name="driving_license" accept=".pdf,image/*" required />
+              <input
+                type="file"
+                class="form-control-file"
+                id="driving_license"
+                name="driving_license"
+                accept=".pdf,image/*"
+                required
+              />
             </div>
+            {% endif %}
+            <input type="hidden" id="razorpay_payment_id" name="razorpay_payment_id" />
+            <input type="hidden" id="razorpay_order_id" name="razorpay_order_id" />
+            <input type="hidden" id="razorpay_signature" name="razorpay_signature" />
 
             <!-- Submit Button -->
             <div class="text-center">
-              <button class="btn btn-primary" type="submit">Payment</button>
+              <button class="btn btn-primary" type="button" id="payButton">
+                Proceed to Payment
+              </button>
             </div>
           </div>
         </div>
@@ -73,4 +107,37 @@
     </div>
   </div>
 </form>
+<script type="text/javascript">
+  document.getElementById("payButton").onclick = function (e) {
+    e.preventDefault();
+
+    var options = {
+      key: "{{ razorpay_key }}", // Razorpay Key ID
+      amount: "{{ amount }}", // Amount in paise (100 paise = 1 INR)
+      currency: "INR",
+      name: "{{ bill.user.username }}",
+      description: "Car Rental Payment",
+      
+      order_id: "{{ razorpay_order_id }}", // This would be generated from the server
+      handler: function (response) {
+        document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;
+        document.getElementById('razorpay_order_id').value = response.razorpay_order_id;
+        document.getElementById('razorpay_signature').value = response.razorpay_signature;
+        // After successful payment, set payment details in a hidden input and submit the form
+        document.getElementById('bookingForm').submit();
+      },
+      prefill: {
+        name: "{{ bill.user.username}}",
+        email: "{{ bill.user.email }}",
+        contact: "{{ bill.user.phone_number }}",
+      },
+      theme: {
+        color: "#3399cc",
+      },
+    };
+
+    var rzp1 = new Razorpay(options);
+    rzp1.open();
+  };
+</script>
 {% endblock body %}

@@ -15,6 +15,7 @@ class CustomUser(AbstractUser):
     driving_licence = models.ImageField(upload_to="user/driving_licene", default="")
 
 
+
     def __str__(self):
         return self.username
 

@@ -1,10 +1,14 @@
 {% extends 'base.html' %}
 {% block title %} My Orders {% endblock title %}
+
 {% load static %}
+{% load custom_filters %}
+
 <link rel="stylesheet" href="{% static 'style.css' %}" />
 
 {% block body %}
 <div class="container my-5">
+  {% include 'messages.html' %}
   <h2 class="text-center mb-4">My Orders</h2>
 
   <!-- Orders Table -->
@@ -37,7 +41,22 @@
           <td>Not Approved</td>
           {% endif %}
           <td>
+            {% if not order.payment_status %}
+            <!-- Repayment Button -->
+            <form method="post" id="payment-form">
+              {% csrf_token %}
+              <input type="hidden" name="order_id" value="{{ order.id }}" />
+              <input type="hidden" name="bill_id" value="{{ order.bill.id }}" />
+              <input type="hidden" id="razorpay_order_id" name="razorpay_order_id" value="{{ razorpay_order_id }}" />
+              <input type="hidden" id="razorpay_key" name="razorpay_key" value="{{ razorpay_key }}" />
+              <input type="hidden" id="amount_in_paise" name="amount" value="{{ order.bill.total_rent|multiply:100 }}" />
+              <button type="button" class="btn btn-warning btn-sm" id="repayment-button">
+                Repayment
+              </button>
+            </form>
+            {% else %}
             <a href="{% url 'order_detail' order.id %}" class="btn btn-info btn-sm">View</a>
+            {% endif %}
           </td>
         </tr>
         {% empty %}
@@ -48,5 +67,55 @@
       </tbody>
     </table>
   </div>
+
+  <!-- Razorpay Payment Script -->
+  <!-- {% if razorpay_order_id %} -->
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script>
+    var options = {
+      key: "{{ razorpay_key }}", // Your Razorpay key
+      amount: "{{ order.bill.total_rent|multiply:100 }}", // Amount in paise
+      currency: "INR",
+      name: "{{order.user.username}}",
+      description: "Payment for Order ID: {{ order.id }}",
+      order_id: "{{ razorpay_order_id }}", // Razorpay Order ID
+      handler: function (response) {
+        // Get the response and submit form data
+        var form = document.getElementById('payment-form');
+
+        var paymentIdInput = document.createElement('input');
+        paymentIdInput.setAttribute('type', 'hidden');
+        paymentIdInput.setAttribute('name', 'razorpay_payment_id');
+        paymentIdInput.setAttribute('value', response.razorpay_payment_id);
+        form.appendChild(paymentIdInput);
+
+        var orderIdInput = document.createElement('input');
+        orderIdInput.setAttribute('type', 'hidden');
+        orderIdInput.setAttribute('name', 'razorpay_order_id');
+        orderIdInput.setAttribute('value', response.razorpay_order_id);
+        form.appendChild(orderIdInput);
+
+        var signatureInput = document.createElement('input');
+        signatureInput.setAttribute('type', 'hidden');
+        signatureInput.setAttribute('name', 'razorpay_signature');
+        signatureInput.setAttribute('value', response.razorpay_signature);
+        form.appendChild(signatureInput);
+
+        form.submit(); // Submit the form with Razorpay payment details
+      },
+      theme: {
+        color: "#F37254"
+      }
+    };
+    
+    var rzp1 = new Razorpay(options);
+
+    // Trigger the Razorpay checkout when the "Repayment" button is clicked
+    document.getElementById('repayment-button').onclick = function(e) {
+      rzp1.open();
+      e.preventDefault();
+    };
+  </script>
+  <!-- {% endif %} -->
 </div>
 {% endblock body %}

@@ -1,4 +1,6 @@
+from django.db import models
 from django.contrib import admin
+from myapp.models import Contact
 from .models import UserType, CustomUser
 from django.contrib.auth.admin import UserAdmin
 from .forms import CustomUserCreationForm, ProfileUpdateForm
@@ -48,3 +50,11 @@ class CustomUserAdmin(UserAdmin):
                 if form.cleaned_data.get('password1'):
                     obj.set_password(form.cleaned_data['password1'])
             obj.save()
+
+
+    # Register the Contact model
+    @admin.register(Contact)
+    class ContactAdmin(admin.ModelAdmin):
+        list_display = ('name', 'email', 'phone_number', 'message')  # Display these fields in the list view
+        search_fields = ('name', 'email', 'phone_number')  # Enable search for these fields
+        

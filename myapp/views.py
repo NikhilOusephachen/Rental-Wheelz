@@ -96,13 +96,27 @@ def vehicles_detial(request, id):
     return render(request, 'cardetails.html', params)
 
 
+from django.shortcuts import render, redirect
+from .models import Contact  # Make sure the Contact model is imported
+from django.contrib import messages
+
 def contact(request):
     if request.method == "POST":
         contactname = request.POST.get('contactname', '')
         contactemail = request.POST.get('contactemail', '')
         contactnumber = request.POST.get('contactnumber', '')
         contactmsg = request.POST.get('contactmsg', '')
+
+        # Save the contact information to the database
         contact = Contact(name=contactname, email=contactemail,
                           phone_number=contactnumber, message=contactmsg)
         contact.save()
-    return render(request, 'contact.html ')
+
+        # Add a success message
+        messages.success(request, 'Your message has been submitted successfully!')
+
+        # Redirect to the same page or a success page
+        return redirect('contact')
+
+    return render(request, 'contact.html')
+

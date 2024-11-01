@@ -84,14 +84,17 @@ def logout_view(request):
 def profile(request):
     user = request.user
 
+
     if request.method == 'POST':
         form = ProfileUpdateForm(request.POST, request.FILES, instance=user)
         if form.is_valid():
             form.save()
+
             messages.success(request, 'Profile updated successfully.')
             return redirect('vehicles')
     else:
         form = ProfileUpdateForm(instance=user)
+        
 
     return render(request, 'registration/profile.html', {
         'form': form,

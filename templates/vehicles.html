@@ -38,60 +38,63 @@
   </section>
 
   <!-- Sort and Filter Options -->
-  <div class="container mb-4">
-    <form method="GET" action="" class="form-inline justify-content-center">
-      <div class="form-group mx-sm-3 mb-2">
-        <label for="sort" class="mr-2">Sort By:</label>
-        <select class="form-control" name="sort" id="sort">
-          <option value="price">Price (Low to High)</option>
-          <option value="-price">Price (High to Low)</option>
-        </select>
-      </div>
+  <div class="container mb-2" style="padding: -1px 0;"> <!-- Reduced padding -->
+    <form method="GET" action="" class="form-row justify-content-center" style="padding: 1px 0;"> <!-- Reduced padding -->
+      <div class="form-group col-md-2 mb-1"> <!-- Reduced margin-bottom -->
+      <label for="sort" class="sr-only">Sort By:</label>
+      <select class="form-control" name="sort" id="sort">
+        <option value="">Sort By</option>
+        <option value="price">Price (Low to High)</option>
+        <option value="-price">Price (High to Low)</option>
+      </select>
+    </div>
 
-      <!-- Filter Options -->
-      <div class="form-group mx-sm-3 mb-2">
-        <label for="color" class="mr-2">Color:</label>
-        <select class="form-control" name="color" id="color">
-          <option value="">All</option>
-          {% for color in colors %}
-          <option value="{{ color.id }}" {% if color.id|stringformat:"s" == request.GET.color %}selected{% endif %}>{{ color.color }}</option>
-          {% endfor %}
-        </select>
-      </div>
+    <div class="form-group col-md-2 mb-2">
+      <label for="color" class="sr-only">Color:</label>
+      <select class="form-control" name="color" id="color">
+        <option value="">Color</option>
+        {% for color in colors %}
+        <option value="{{ color.id }}" {% if color.id|stringformat:"s" == request.GET.color %}selected{% endif %}>{{ color.color }}</option>
+        {% endfor %}
+      </select>
+    </div>
 
-      <div class="form-group mx-sm-3 mb-2">
-        <label for="model" class="mr-2">Model:</label>
-        <select class="form-control" name="model" id="model">
-          <option value="">All</option>
-          {% for model in models %}
-          <option value="{{ model.id }}" {% if model.id|stringformat:"s" == request.GET.model %}selected{% endif %}>{{ model.model_name }}</option>
-          {% endfor %}
-        </select>
-      </div>
+    <div class="form-group col-md-2 mb-2">
+      <label for="model" class="sr-only">Model:</label>
+      <select class="form-control" name="model" id="model">
+        <option value="">Model</option>
+        {% for model in models %}
+        <option value="{{ model.id }}" {% if model.id|stringformat:"s" == request.GET.model %}selected{% endif %}>{{ model.model_name }}</option>
+        {% endfor %}
+      </select>
+    </div>
 
-      <div class="form-group mx-sm-3 mb-2">
-        <label for="brand" class="mr-2">Brand:</label>
-        <select class="form-control" name="brand" id="brand">
-          <option value="">All</option>
-          {% for brand in brands %}
-          <option value="{{ brand.id }}" {% if brand.id|stringformat:"s" == request.GET.brand %}selected{% endif %}>{{ brand.name }}</option>
-          {% endfor %}
-        </select>
-      </div>
+    <div class="form-group col-md-2 mb-2">
+      <label for="brand" class="sr-only">Brand:</label>
+      <select class="form-control" name="brand" id="brand">
+        <option value="">Brand</option>
+        {% for brand in brands %}
+        <option value="{{ brand.id }}" {% if brand.id|stringformat:"s" == request.GET.brand %}selected{% endif %}>{{ brand.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
 
-      <div class="form-group mx-sm-3 mb-2">
-        <label for="fuel_type" class="mr-2">Fuel Type:</label>
-        <select class="form-control" name="fuel_type" id="fuel_type">
-          <option value="">All</option>
-          {% for fuel in fuels %}
-          <option value="{{ fuel.id }}" {% if fuel.id|stringformat:"s" == request.GET.fuel_type %}selected{% endif %}>{{ fuel.fuel }}</option>
-          {% endfor %}
-        </select>
-      </div>
+    <div class="form-group col-md-2 mb-2">
+      <label for="fuel_type" class="sr-only">Fuel Type:</label>
+      <select class="form-control" name="fuel_type" id="fuel_type">
+        <option value="">Fuel Type</option>
+        {% for fuel in fuels %}
+        <option value="{{ fuel.id }}" {% if fuel.id|stringformat:"s" == request.GET.fuel_type %}selected{% endif %}>{{ fuel.fuel }}</option>
+        {% endfor %}
+      </select>
+    </div>
 
-      <button type="submit" class="btn btn-dark mb-2">Apply</button>
-    </form>
-  </div>
+    <div class="form-group col-md-2 mb-2 d-flex align-items-center">
+      <button type="submit" class="btn btn-dark w-100">Apply</button>
+    </div>
+  </form>
+</div>
+
 
   <div class="album py-5 bg-light">
     <div class="container">

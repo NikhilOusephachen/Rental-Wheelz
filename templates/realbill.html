@@ -145,6 +145,8 @@ Bill Details
                         .container, .card-body { max-height: 100%; overflow: hidden; }
                         @page { margin: 20mm; }
                         header, footer { display: none; }
+                        /* Hiding page number and about:blank URL */
+                        @page { size: auto; margin: 0; }
                     }
                 </style>
             </head>
@@ -159,4 +161,6 @@ Bill Details
         printWindow.close();
     }
 </script>
+
+
 {% endblock body %}

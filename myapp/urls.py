@@ -5,7 +5,7 @@ from user.views import (car_brand_delete, car_color_delete, car_delete, CustomLo
                         manager_car_view, manager_dashboard, manager_edit, manager_order_management,
                         ManagerCarBrandEdit, ManagerCarColorEdit, ManagerCarEdit, ManagerCarModelEdit, profile,
                         register_view)
-from booking.views import bill, manager_car_driver_delete, manager_car_drivers, manager_driver_add, manager_driver_edit, manager_order_details, order, order_detail, order_list,real_bill,make_payment,payment_success#verify_payment
+from booking.views import bill, manager_car_driver_delete, manager_car_drivers, manager_driver_add, manager_driver_edit, manager_order_details, order, order_detail, order_list, real_bill
 
 
 urlpatterns = [
@@ -22,10 +22,7 @@ urlpatterns = [
     path("view_order", order_list, name="view_order"),
     path("order_detail/<int:id>/", order_detail, name="order_detail"),
     path('order/<int:order_id>/bill/', real_bill, name='real_bill'),
-    path('make_payment/<int:amount>/', make_payment, name='make_payment'),
-    path('payment_success/', payment_success, name='payment_success'),
-    #path('verify_payment/', verify_payment, name='verify_payment'),
-    
+
 
     # manager
     path("manager_app/", manager_app, name="manager_app"),
@@ -44,8 +41,10 @@ urlpatterns = [
     path('manager_edit/<int:id>/', manager_edit, name='manager_edit'),
     path('manager_car_drivers/', manager_car_drivers, name='manager_car_drivers'),
     path('manager_driver_add/', manager_driver_add, name='manager_driver_add'),
-    path('manager_driver_edit/<int:driver_id>/', manager_driver_edit, name='manager_driver_edit'),
-    path('manager_car_driver_delete/<int:driver_id>/', manager_car_driver_delete, name='manager_car_driver_delete'),
+    path('manager_driver_edit/<int:driver_id>/',
+         manager_driver_edit, name='manager_driver_edit'),
+    path('manager_car_driver_delete/<int:driver_id>/',
+         manager_car_driver_delete, name='manager_car_driver_delete'),
     path("manager_car_brand/", manager_car_brand, name="manager_car_brand"),
     path('manager/car_brand/add/', manager_car_brand_add,
          name='manager_car_brand_add'),

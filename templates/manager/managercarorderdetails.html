@@ -23,7 +23,7 @@ Order Details - {{ order.car.car_name }}
             <p><strong>Customer Name:</strong> {{ order.user.get_full_name }}</p>
             <p><strong>Email:</strong> {{ order.user.email }}</p>
             <p><strong>Phone:</strong> {{ order.user.phone_number }}</p> <!-- Assuming user has a profile with phone number -->
-            <p><strong>Driving Licence:</strong> <a href="{{order.user.driving_licence.url}}" download="{{order.user.first_name}}License.jpg" class="btn btn-primary">
+            <p><strong>Driving Licence:</strong> <a href="{{order.user.driving_license.url}}" download="{{order.user.first_name}}License.jpg" class="btn btn-primary">
                 Download File
             </a></p>
             <hr>
@@ -60,8 +60,8 @@ Order Details - {{ order.car.car_name }}
                     {% csrf_token %}
                     <div class="form-group">
                         <label for="driverSelect">Select Driver:</label>
-                        <select name="driver_id" id="driverSelect" class="form-control" 
-                                {% if order.is_assigned %} disabled {% endif %}>
+                        <select name="driver_id" id="driverSelect" class="form-control">
+                                
                             <option value="">-- Choose a Driver --</option>
                             {% for driver in available_drivers %}
                                 <option value="{{ driver.id }}"
@@ -72,8 +72,7 @@ Order Details - {{ order.car.car_name }}
                         </select>
                     </div>
             
-                    <button type="submit" class="btn btn-primary mt-3" 
-                            {% if order.is_assigned %} disabled {% endif %}>
+                    <button type="submit" class="btn btn-primary mt-3" >                            
                         Assign Driver
                     </button>
                 </form>

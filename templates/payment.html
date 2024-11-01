@@ -14,7 +14,7 @@ payment - ₹{{ amount }}
 
     <script>
         document.getElementById('payButton').onclick = function () {
-            fetch('/make_payment/{{ amount }}/', {
+            fetch('/make_payment/{{ amount }}/{{ bill }}', {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': '{{ csrf_token }}',
@@ -33,10 +33,9 @@ payment - ₹{{ amount }}
                         "order_id": data.order_id,
                         "handler": function (response) {
                             console.log(response);
-                            alert('Payment successful! Payment ID: ' + response.razorpay_payment_id);
 
                             // Send the payment response to the server for further processing (if needed)
-                            fetch('/payment_success/', {
+                            fetch('/verify_payment/{{ bill }}', {
                                 method: 'POST',
                                 headers: {
                                     'X-CSRFToken': '{{ csrf_token }}',
@@ -51,9 +50,9 @@ payment - ₹{{ amount }}
                             .then(res => res.json())
                             .then(result => {
                                 if (result.status === 'success') {
-                                    alert('Payment verified successfully!');
+                                    window.location.href = '/view_order'; // Change this to your success URL
                                 } else {
-                                    alert('Payment verification failed!');
+                                    window.location.href = '/view_order'; // Change this to your success URL
                                 }
                             })
                             .catch(err => {

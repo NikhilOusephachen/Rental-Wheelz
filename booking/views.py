@@ -1,5 +1,8 @@
+import json
 import hashlib
 from django.shortcuts import render, redirect, get_object_or_404
+
+from user.models import CustomUser
 from .models import Driver, DriverAssignment, Order, Bill
 from django.db.models import Q
 from django.contrib import messages
@@ -13,7 +16,6 @@ from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime
 
 
-
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.utils.dateparse import parse_date
@@ -22,8 +24,8 @@ from .models import Car, Bill
 
 
 # Initialize the Razorpay client
-client = razorpay.Client(auth=("rzp_test_i1eV0ftB0HVfyt", "QhoN8KaIJqnCGV7Vc74p0iaK"))
-
+client = razorpay.Client(
+    auth=("rzp_test_i1eV0ftB0HVfyt", "QhoN8KaIJqnCGV7Vc74p0iaK"))
 
 
 @login_required
@@ -96,29 +98,137 @@ def real_bill(request, order_id):
     context = {
         'order': order,
     }
-    return render(request, 'realbill.html',{'order': order, 'current_date': current_date})
+    return render(request, 'realbill.html', {'order': order, 'current_date': current_date})
 
 
 @login_required
 def order(request, bill_id):
     bill = get_object_or_404(Bill, id=bill_id)
+    # Razorpay order creation
+    order_amount = int(bill.total_rent * 100)  # Amount in paise
+    razorpay_order = client.order.create({
+        "amount": order_amount,
+        "currency": "INR",
+        "payment_capture": "1"  # Auto capture the payment
+    })
+    razorpay_order_id = razorpay_order['id']
+
+    context = {
+        'bill': bill,
+        'razorpay_order_id': razorpay_order_id,
+        'razorpay_key': "rzp_test_i1eV0ftB0HVfyt",
+        'amount': order_amount
+    }
+
     if request.method == "POST":
+        razorpay_payment_id = request.POST.get('razorpay_payment_id', '')
+        razorpay_order_id = request.POST.get('razorpay_order_id')
+        razorpay_signature = request.POST.get('razorpay_signature')
         address = request.POST.get('address', '')
         driving_license = request.POST.get('driving_license', '')
-        order = Order(user=bill.user, address=address, car=bill.car,
-                      driving_license=driving_license, bill=bill)
-        order.save()
-        messages.success(request, 'Order is placed successfully.')
-        return redirect(reverse('make_payment', kwargs={'amount': int(bill.total_rent)}))
-    else:
-        print("error")
-        return render(request, 'orders.html', {'bill': bill})
+        try:
+            client.utility.verify_payment_signature({
+                'razorpay_order_id': razorpay_order_id,
+                'razorpay_payment_id': razorpay_payment_id,
+                'razorpay_signature': razorpay_signature
+            })
+            # Payment is successful, update the order
+            if 'driving_license' in request.FILES:
+                driving_license = request.FILES['driving_license']
+                userdata = CustomUser.objects.get(id=bill.user.id)
+                print(userdata.driving_licence)  # Print the current value
+                print(userdata)
+                
+                # Update the driving_licence field with the uploaded file
+                userdata.driving_licence = driving_license
+                userdata.save()
+
+            order = Order(user=bill.user, address=address, car=bill.car,
+                          driving_license=driving_license, bill=bill)
+            order.payment_status = True
+            order.save()
+
+            messages.success(
+                request, 'Payment successful and order has been placed.')
+            # Redirect to success page after order placement
+            return redirect('vehicles')
+
+        except razorpay.errors.SignatureVerificationError:
+            order = Order(user=bill.user, address=address, car=bill.car,
+                          driving_license=driving_license, bill=bill)
+            order.save()
+            messages.error(
+                request, 'Payment verification failed. Please try again.')
+            return redirect('view_order')  # Handle failure appropriately
+    return render(request, 'orders.html', context)
 
 
 @login_required
 def order_list(request):
+    # Fetch all orders for the logged-in user
     orders = Order.objects.filter(user=request.user)
-    return render(request, 'order_list.html', {'orders': orders})
+
+    if request.method == "POST":
+        # Handle payment verification and status update
+        razorpay_payment_id = request.POST.get('razorpay_payment_id')
+        razorpay_order_id = request.POST.get('razorpay_order_id')
+        razorpay_signature = request.POST.get('razorpay_signature')
+        order_id = request.POST.get('order_id')
+        bill_id = request.POST.get('bill_id')
+
+        if razorpay_payment_id:
+            try:
+                # Verify the payment signature to ensure the payment is valid
+                params_dict = {
+                    'razorpay_order_id': razorpay_order_id,
+                    'razorpay_payment_id': razorpay_payment_id,
+                    'razorpay_signature': razorpay_signature
+                }
+                client.utility.verify_payment_signature(params_dict)
+
+                # Update the order payment status
+                order = get_object_or_404(Order, id=order_id)
+                order.payment_status = True
+                order.save()
+
+                messages.success(
+                    request, 'Payment successful and order has been updated.')
+            except razorpay.errors.SignatureVerificationError:
+                messages.error(
+                    request, 'Payment verification failed. Please try again.')
+            except Exception as e:
+                messages.error(request, f"An error occurred: {str(e)}")
+
+        # Redirect to the order list after processing the payment
+        return redirect('view_order')
+
+    # Razorpay Order Creation (for unpaid orders)
+    # Select the first unpaid order (for simplicity)
+    unpaid_order = orders.filter(payment_status=False).first()
+    if unpaid_order:
+        bill = unpaid_order.bill
+
+        # Create a new Razorpay order if there's an unpaid order
+        razorpay_order = client.order.create({
+            "amount": int(bill.total_rent * 100),  # Amount in paise
+            "currency": "INR",
+            "payment_capture": "1"
+        })
+
+        context = {
+            'orders': orders,
+            'razorpay_order_id': razorpay_order['id'],
+            'razorpay_key': "rzp_test_i1eV0ftB0HVfyt",
+            'amount_in_paise': int(bill.total_rent * 100),
+            'bill': bill
+        }
+    else:
+        # If no unpaid orders, just render the orders
+        context = {
+            'orders': orders,
+        }
+
+    return render(request, 'order_list.html', context)
 
 
 @login_required
@@ -129,7 +239,7 @@ def order_detail(request, id):
     except DriverAssignment.DoesNotExist:
         driver = None  # No driver assigned
     if request.method == 'POST':
-        # Update the is_assigned field to True 
+        # Update the is_assigned field to True
         order.is_assigned = True
         order.save()
 
@@ -227,69 +337,3 @@ def manager_car_driver_delete(request, driver_id):
         messages.success(request, f"The Driver '{
                          driver_name}' has been successfully deleted.")
     return redirect('manager_car_drivers')
-
-@login_required
-def make_payment(request, amount):
-    if request.method == 'POST':
-        # Create an order
-        order_data = {
-            "amount": int(amount) * 100,  # Amount in paise
-            "currency": "INR",
-            "receipt": "receipt#1",
-            "payment_capture": 1  # Auto capture the payment
-        }
-        
-        try:
-            order = client.order.create(data=order_data)
-            return JsonResponse({
-                'order_id': order['id'],
-                'amount': order['amount'],
-                'currency': order['currency'],
-                'status': 'success'
-            })
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
-
-    return render(request, 'payment.html', {'amount': amount})
-
-@login_required
-def payment_success(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        payment_id = data.get('payment_id')
-        order_id = data.get('order_id')
-        signature = data.get('signature')
-
-        # Here, you can verify the payment signature or perform other necessary steps.
-        # Example: verify the signature (optional)
-        # Note: Razorpay provides a utility function to verify the signature using `razorpay_client.utility.verify_payment_signature()`
-
-        # For simplicity, assuming payment is successful
-        return JsonResponse({'status': 'success'})
-
-    return JsonResponse({'status': 'failure'}, status=400)
-
-import json
-
-# @csrf_exempt
-# @login_required
-# def verify_payment(request):
-#     if request.method == 'POST':
-#         response = request.POST
-#         razorpay_order_id = response.get('razorpay_order_id')
-#         razorpay_payment_id = response.get('razorpay_payment_id')
-#         razorpay_signature = response.get('razorpay_signature')
-    
-
-#         # Verify the payment signature
-#         generated_signature = f"{razorpay_order_id}|{razorpay_payment_id}"
-#         expected_signature = hashlib.sha256(generated_signature.encode()).hexdigest()
-
-#         if expected_signature == razorpay_signature:
-#             # Payment is verified
-#             # You can update your order status in the database here
-#             return JsonResponse({'status': 'Payment verified'})
-        
-#         return JsonResponse({'status': 'Payment verification failed'}, status=400)
-
-#     return JsonResponse({'status': 'Invalid request'}, status=400)
