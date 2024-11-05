@@ -269,8 +269,7 @@ def manager_order_details(request, order_id):
             driver.is_available = False
             driver.save()
 
-            messages.success(request, f"Driver {
-                             driver.name} has been assigned to the order.")
+            messages.success(request, f"Driver {driver.name} has been assigned to the order.")
         return redirect('manager_order_details', order_id=order.id)
     return render(request, 'manager/managercarorderdetails.html', {'order': order, 'available_drivers': available_drivers})
 
@@ -334,6 +333,5 @@ def manager_car_driver_delete(request, driver_id):
         driver = get_object_or_404(Driver, id=driver_id)
         driver_name = driver.name
         driver.delete()
-        messages.success(request, f"The Driver '{
-                         driver_name}' has been successfully deleted.")
+        messages.success(request, f"The Driver '{driver_name}' has been successfully deleted.")
     return redirect('manager_car_drivers')
