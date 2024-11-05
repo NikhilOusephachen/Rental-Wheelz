@@ -195,8 +195,7 @@ def car_delete(request, car_id):
         car = get_object_or_404(Car, id=car_id)
         car_name = car.car_name
         car.delete()
-        messages.success(request, f"The car '{
-                         car_name}' has been successfully deleted.")
+        messages.success(request, f"The car '{car_name}' has been successfully deleted.")
     return redirect('manager_car_management')
 
 
