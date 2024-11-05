@@ -293,8 +293,7 @@ def car_brand_delete(request, brand_id):
         brand = get_object_or_404(Brand, id=brand_id)
         brand_name = brand.name
         brand.delete()
-        messages.success(request, f"The brand '{
-                         brand_name}' has been successfully deleted.")
+        messages.success(request, f"The brand '{brand_name}' has been successfully deleted.")
     return redirect('manager_car_brand')
 
 
@@ -350,8 +349,7 @@ def car_model_delete(request, model_id):
         model = get_object_or_404(CarModel, id=model_id)
         model_name = model.model_name
         model.delete()
-        messages.success(request, f"The Model '{
-                         model_name}' has been successfully deleted.")
+        messages.success(request, f"The Model '{model_name}' has been successfully deleted.")
     return redirect('manager_car_model')
 
 
@@ -407,6 +405,5 @@ def car_color_delete(request, color_id):
         color = get_object_or_404(CarColor, id=color_id)
         color_name = color.color
         color.delete()
-        messages.success(request, f"The color '{
-                         color_name}' has been successfully deleted.")
+        messages.success(request, f"The color '{color_name}' has been successfully deleted.")
     return redirect('manager_car_color')
