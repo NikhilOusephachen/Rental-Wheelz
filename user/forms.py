@@ -42,7 +42,7 @@ class ProfileUpdateForm(forms.ModelForm):
         fields = ['first_name', 'last_name', 'email', 'phone_number', 'image', 'driving_licence']
 
         widgets = { 
-            'phone_number': forms.TextInput(attrs={'maxlength': '15'}),
+            'phone_number': forms.TextInput(attrs={'maxlength': '15', 'id': 'phone-number'}),
             'image': forms.ClearableFileInput(attrs={'class': 'form-control'}),
         }
 

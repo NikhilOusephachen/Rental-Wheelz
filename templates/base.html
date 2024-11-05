@@ -60,8 +60,8 @@
               
             </a>
             
-            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
-              <a class="dropdown-item" href="{% url 'profile' %}">View Profile</a>
+            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown" id="profile-dropdown">
+              <a class="dropdown-item" id="view-profile-link" href="{% url 'profile' %}">View Profile</a>
               <a class="dropdown-item" href="{% url 'view_order' %}">View Orders</a>
               <div class="dropdown-divider"></div>
               <a class="dropdown-item" id="logout" href="{% url 'logout' %}">Log Out</a>

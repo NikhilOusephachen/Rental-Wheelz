@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-@bg5l85@3wb7zpar7mx#xgpbm5qev0=t+l-ri!ld13b(_op#oh
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -60,6 +60,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', 
 ]
 
 MESSAGE_TAGS = {
@@ -94,14 +95,28 @@ WSGI_APPLICATION = 'vehicles.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'carrental',
+#         'HOST': 'localhost',
+#         'USER': 'root',
+#         'PASSWORD': '',
+#         'PORT': '3306',
+#         'OPTIONS': {
+#             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+#         }
+#     }
+# }
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'carrental',
-        'HOST': 'localhost',
-        'USER': 'root',
-        'PASSWORD': '',
-        'PORT': '3306',
+        'NAME': 'carrental_operation',
+        'HOST': '3jcj1.h.filess.io',
+        'USER': 'carrental_operation',
+        'PASSWORD': 'de27c798d439eb13ed9c867200032fa696c0c7df',
+        'PORT': '3307',
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
         }
