@@ -1,0 +1,54 @@
+{% extends 'manager/basemanager.html' %}
+
+{% block title %}Share Location{% endblock %}
+
+{% block header %}Share Your Location{% endblock %}
+
+{% block content %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<h3>Share Your Location</h3>
+
+<form id="shareLocationForm" method="post" action="{% url 'update_car_location' car.id %}">
+    {% csrf_token %}
+    <div>
+        <label for="latitude">Latitude:</label>
+        <input type="text" id="latitude" name="latitude" required>
+    </div>
+    <div>
+        <label for="longitude">Longitude:</label>
+        <input type="text" id="longitude" name="longitude" required>
+    </div>
+    <div>
+        <label for="tracking_enabled">Enable Tracking:</label>
+        <input type="checkbox" id="tracking_enabled" name="tracking_enabled" value="true" checked>
+    </div>
+
+    <button type="button" onclick="getLocation()">Get Location Automatically</button>
+    <button type="submit">Share Location</button>
+</form>
+
+<script>
+    // Function to get the current location from the browser
+    function getLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                // Get latitude and longitude from the position object
+                var latitude = position.coords.latitude;
+                var longitude = position.coords.longitude;
+
+                // Set latitude and longitude in the form fields
+                document.getElementById('latitude').value = latitude;
+                document.getElementById('longitude').value = longitude;
+
+                alert("Location fetched: " + latitude + ", " + longitude);
+            }, function(error) {
+                alert("Unable to fetch location: " + error.message + ". Please enter your location manually.");
+            });
+        } else {
+            alert("Geolocation is not supported by this browser. Please enter your location manually.");
+        }
+    }
+</script>
+
+{% endblock %}

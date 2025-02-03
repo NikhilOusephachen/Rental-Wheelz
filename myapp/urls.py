@@ -4,8 +4,9 @@ from user.views import (car_brand_delete, car_color_delete, car_delete, CustomLo
                         manager_car_brand, manager_car_brand_add, manager_car_brand_view, manager_car_color, manager_car_color_add, manager_car_color_view, manager_car_management, manager_car_model, manager_car_model_add, manager_car_model_view,
                         manager_car_view, manager_dashboard, manager_edit, manager_order_management,
                         ManagerCarBrandEdit, ManagerCarColorEdit, ManagerCarEdit, ManagerCarModelEdit, profile,
-                        register_view)
-from booking.views import bill, manager_car_driver_delete, manager_car_drivers, manager_driver_add, manager_driver_edit, manager_order_details, order, order_detail, order_list, real_bill
+                        register_view, manager_gps_overview, manager_car_ratings, update_car_location
+                        )
+from booking.views import bill, manager_car_driver_delete, manager_car_drivers, manager_driver_add, manager_driver_edit, manager_order_details, order, order_detail, order_list, real_bill, create_rating
 
 
 urlpatterns = [
@@ -22,6 +23,7 @@ urlpatterns = [
     path("view_order", order_list, name="view_order"),
     path("order_detail/<int:id>/", order_detail, name="order_detail"),
     path('order/<int:order_id>/bill/', real_bill, name='real_bill'),
+    path("create-rating/<int:car_id>/<int:order_id>", create_rating, name="create_rating"),
 
 
     # manager
@@ -34,6 +36,7 @@ urlpatterns = [
     path("manager_car_edit/<int:pk>/edit/",
          ManagerCarEdit.as_view(), name="manager_car_edit"),
     path('car/delete/<int:car_id>/', car_delete, name='manager_car_delete'),
+    path('manager_car_ratings/', manager_car_ratings, name='manager_car_ratings'),
     path("manager_order_management/", manager_order_management,
          name="manager_order_management"),
     path('manager_order_details/<int:order_id>/',
@@ -72,10 +75,14 @@ urlpatterns = [
          ManagerCarModelEdit.as_view(), name="manager_car_model_edit"),
     path('car_model_delete/delete/<int:model_id>/',
          car_model_delete, name='car_model_delete'),
+    path('manager_gps_overview/', manager_gps_overview, name='manager_gps_overview'),
+    path('update-location/<int:car_id>/', update_car_location, name="update_car_location"),
+
 
     # users
     path("register", register_view, name="register"),
     path("login/", CustomLoginView.as_view(), name="login"),
     path("profile/", profile, name="profile"),
     path('logout/', logout_view, name='logout'),
+
 ]

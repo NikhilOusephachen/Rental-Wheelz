@@ -14,6 +14,7 @@ import razorpay
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime
+from django.http import HttpResponseForbidden
 
 
 from django.shortcuts import render, get_object_or_404, redirect
@@ -21,6 +22,7 @@ from django.urls import reverse
 from django.utils.dateparse import parse_date
 from datetime import timedelta
 from .models import Car, Bill
+from .models import Rating
 
 
 # Initialize the Razorpay client
@@ -335,3 +337,47 @@ def manager_car_driver_delete(request, driver_id):
         driver.delete()
         messages.success(request, f"The Driver '{driver_name}' has been successfully deleted.")
     return redirect('manager_car_drivers')
+
+@login_required
+def create_rating(request, car_id, order_id):
+    car = get_object_or_404(Car, id=car_id)
+    ordered = get_object_or_404(Order, id=order_id, user=request.user)
+
+    # Check if the user has placed an order for this car
+    has_ordered = Order.objects.filter(user=request.user, car=car).exists()
+    if not has_ordered:
+        return HttpResponseForbidden("You cannot rate this car because you haven't rented it.")
+
+    # Check if a rating already exists for this order and user
+    existing_rating = Rating.objects.filter(order=ordered, user=request.user).first()
+
+    if request.method == "POST":
+        rating_value = request.POST.get("rating")
+        feedback_text = request.POST.get("feedback")
+
+        # Validate the rating value
+        if rating_value and 1 <= int(rating_value) <= 5:
+            if existing_rating:
+                # Update the existing rating
+                existing_rating.rating = rating_value
+                existing_rating.feedback = feedback_text
+                existing_rating.save()
+                messages.success(request, "Your rating has been updated successfully.")
+            else:
+                # Create a new rating
+                Rating.objects.create(
+                    order=ordered,
+                    user=request.user,
+                    car=car,
+                    rating=rating_value,
+                    feedback=feedback_text,
+                )
+                messages.success(request, "Your rating has been submitted successfully.")
+
+            return redirect("order_detail", id=order_id)  # Redirect to the order details page
+
+    context = {
+        "car": car,
+        "existing_rating": existing_rating,
+    }
+    return render(request, "create_rating.html", context)

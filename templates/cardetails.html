@@ -2,17 +2,17 @@
 {% block title %}
 Car Details
 {% endblock title %} 
-{%load static%}
+{% load static %}
 
 <link rel="stylesheet" href="{% static 'style.css' %}" />
+
+<!-- PhotoSphereViewer CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photo-sphere-viewer@4/dist/photo-sphere-viewer.min.css" />
 
 {% block body %}
 
 <main role="main" style="background-color: rgb(200, 200, 200)">
-  <section
-    class="jumbotron text-center"
-    style="background-color: rgb(200, 200, 200)"
-  >
+  <section class="jumbotron text-center" style="background-color: rgb(200, 200, 200)">
     <div class="container">
       <h1 class="jumbotron-heading" style="font-size: 50px">
         {{ car.car_name }} Details
@@ -20,24 +20,22 @@ Car Details
       <p style="font-size: 25px; margin-top: 30px">
         Get the full details of the car you want to rent!
       </p>
-      <p></p>
     </div>
   </section>
 
   <div class="album py-5 bg-light">
     <div class="container">
       <div class="row">
+        
+        <!-- Car Image or 360 Viewer -->
         <div class="col-md-6">
           <div class="card mb-4 shadow-sm">
-            <img
-              src="/media/{{ car.image }}"
-              alt="car"
-              class="d-block w-100"
-              height="400"
-            />
+            <div id="carViewer" class="d-block w-100" style="height: 400px;"></div>
+            <button id="toggle360" class="btn btn-dark mt-2 w-100">Toggle 360° View</button>
           </div>
         </div>
 
+        <!-- Car Details -->
         <div class="col-md-6">
           <div class="card-body">
             <h4>{{ car.car_name }}</h4>
@@ -48,22 +46,20 @@ Car Details
               <li><strong>Model:</strong> {{ car.car_model.model_name }}</li>
               <li><strong>Color:</strong> {{ car.car_color.color }}</li>
               <li><strong>Fuel Type:</strong> {{ car.car_fuel.fuel }}</li>
-              <li>
-                <strong>Transmission:</strong> {{ car.transmission.transmission}}
-              </li>
+              <li><strong>Transmission:</strong> {{ car.transmission.transmission }}</li>
               <li><strong>Year:</strong> {{ car.year }}</li>
               <li><strong>Price per Day:</strong> ₹{{ car.price }}</li>
               <li><strong>Insurance Number:</strong> {{ car.insurance_number }}</li>
+              
               {% if car.insurance_file %}
-    <p><strong>Insurance File:</strong> <a href="{{ car.insurance_file.url }}" download>Download</a></p>
-{% else %}
-    <p><strong>Insurance File:</strong> No file available</p>
-{% endif %}
+                <p><strong>Insurance File:</strong> <a href="{{ car.insurance_file.url }}" download>Download</a></p>
+              {% else %}
+                <p><strong>Insurance File:</strong> No file available</p>
+              {% endif %}
+
               <li>
                 <strong>Available:</strong>
-                <span
-                  class="status-indicator {% if car.available %}available{% else %}not-available{% endif %}"
-                ></span>
+                <span class="status-indicator {% if car.available %}available{% else %}not-available{% endif %}"></span>
               </li>
             </ul>
 
@@ -77,8 +73,86 @@ Car Details
           </div>
         </div>
       </div>
+
+      <!-- User Reviews Section -->
+      <div class="row mt-5">
+        <div class="col-12">
+          <h3 class="mb-4">User Reviews</h3>
+          {% for review in reviews %}
+          <div class="card mb-3 border-primary shadow-sm">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <h5 class="card-title text-primary d-flex align-items-center">
+                  <i class="fas fa-user mr-2"></i> {{ review.user.username }}
+                  {% if review.rating %}
+                    <div class="ml-3">
+                      {% for i in rating_range %}
+                        {% if i <= review.rating %}
+                          <i class="fa fa-star" style="color: #f39c12;"></i> <!-- Full Star -->
+                        {% elif i == review.rating|add:0.5 %}
+                          <i class="fa fa-star-half-alt" style="color: #f39c12;"></i> <!-- Half Star -->
+                        {% else %}
+                          <i class="fa fa-star" style="color: #dcdcdc;"></i> <!-- Empty Star -->
+                        {% endif %}
+                      {% endfor %}
+                    </div>
+                  {% else %}
+                    <p>No ratings yet.</p>
+                  {% endif %}
+                </h5>
+              </div>
+              <p class="card-text font-italic">{{ review.feedback }}</p>
+              <small class="text-muted">
+                <i class="fas fa-clock"></i> Posted on {{ review.created_at|date:"F d, Y h:i A" }}
+              </small>
+            </div>
+          </div>
+          {% empty %}
+          <p class="text-muted text-center">No reviews yet. Be the first to leave a review!</p>
+          {% endfor %}
+        </div>
+      </div>
     </div>
   </div>
 </main>
+
+<!-- PhotoSphereViewer JS -->
+<script src="https://cdn.jsdelivr.net/npm/photo-sphere-viewer@4/dist/photo-sphere-viewer.min.js"></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    let viewer;
+    let is360Active = false;
+    let container = document.getElementById("carViewer");
+
+    function showImage() {
+      container.innerHTML = `<img src="/media/{{ car.image }}" alt="car" class="d-block w-100" height="400" />`;
+    }
+
+    function show360View() {
+      viewer = new PhotoSphereViewer.Viewer({
+        container: container,
+        panorama: "/media/{{ car.image }}", // Ensure this is a proper 360° equirectangular image
+        caption: "360° View of the Car",
+        loadingImg: "https://cdn.jsdelivr.net/npm/photo-sphere-viewer@4/assets/photosphere-logo.gif",
+        navbar: ["autorotate", "zoom", "move", "fullscreen", "download", "caption"],
+        defaultZoomLvl: 50,
+        mousewheel: false,
+      });
+    }
+
+    document.getElementById("toggle360").addEventListener("click", function () {
+      if (is360Active) {
+        showImage();
+      } else {
+        show360View();
+      }
+      is360Active = !is360Active;
+    });
+
+    // Load default image first
+    showImage();
+  });
+</script>
 
 {% endblock body %}

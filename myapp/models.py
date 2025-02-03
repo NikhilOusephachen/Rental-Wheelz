@@ -48,17 +48,36 @@ class CarColor(models.Model):
         return self.color
 
 
+class CarLocation(models.Model):
+    car = models.OneToOneField("Car", on_delete=models.CASCADE, related_name="location")
+    latitude = models.FloatField()
+    longitude = models.FloatField()
+    last_updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return (
+            f"Location for {self.car.car_name} at ({self.latitude}, {self.longitude})"
+        )
+
+
+class CarTracking(models.Model):
+    car = models.OneToOneField("Car", on_delete=models.CASCADE, related_name="tracking")
+    is_enabled = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Tracking for {self.car.car_name} is {'enabled' if self.is_enabled else 'disabled'}"
+
+
 class Car(models.Model):
     car_name = models.CharField(max_length=30, default="")
     car_desc = models.CharField(max_length=300, default="")
     car_brand = models.ForeignKey(Brand, on_delete=models.CASCADE, default=1)
-    car_model = models.ForeignKey(
-        CarModel, on_delete=models.CASCADE, default=1)
-    car_color = models.ForeignKey(
-        CarColor, on_delete=models.CASCADE, default=1)
+    car_model = models.ForeignKey(CarModel, on_delete=models.CASCADE, default=1)
+    car_color = models.ForeignKey(CarColor, on_delete=models.CASCADE, default=1)
     car_fuel = models.ForeignKey(CarFuel, on_delete=models.CASCADE, default=1)
     transmission = models.ForeignKey(
-        CarTransmission, on_delete=models.CASCADE, default=1)
+        CarTransmission, on_delete=models.CASCADE, default=1
+    )
     year = models.IntegerField()
     available = models.BooleanField(default=False)
     price = models.IntegerField(default=0)

@@ -112,10 +112,10 @@ WSGI_APPLICATION = 'vehicles.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'carrental_operation',
-        'HOST': '3jcj1.h.filess.io',
-        'USER': 'carrental_operation',
-        'PASSWORD': 'de27c798d439eb13ed9c867200032fa696c0c7df',
+        'NAME': 'carrentaloperation_coffeerun',
+        'HOST': 'lo5zx.h.filess.io',
+        'USER': 'carrentaloperation_coffeerun',
+        'PASSWORD': '3923168c73b5e53492c342b8a8ecb034cd0d373e',
         'PORT': '3307',
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",

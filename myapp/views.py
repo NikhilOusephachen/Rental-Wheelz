@@ -1,9 +1,10 @@
 from django.contrib import messages
+from booking.models import Rating
 from .models import Car, CarColor, CarModel, Brand, CarFuel
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
 from .models import *
-from django.db.models import Q
+from django.db.models import Q,Avg
 
 
 def index(request):
@@ -39,7 +40,9 @@ def vehicles(request):
 
     # Initial query to get all cars
     cars = Car.objects.all()
-
+    for car in cars:
+        avg_rating = car.rating_set.aggregate(Avg('rating'))['rating__avg'] or 0
+        car.avg_rating = avg_rating
     # Filter by search term if provided
     if search_query:
         cars = cars.filter(
@@ -92,7 +95,8 @@ def vehicles(request):
 
 def vehicles_detial(request, id):
     car = get_object_or_404(Car, id=id)
-    params = {'car': car}
+    ratings = Rating.objects.filter(car=car)
+    params = {'car': car,'reviews':ratings,'rating_range': range(1, 6)}
     return render(request, 'cardetails.html', params)
 
 

@@ -40,6 +40,20 @@ class Order(models.Model):
     def __str__(self):
         return f"Order for {self.car} by {self.user} from {self.bill}"
 
+class Rating(models.Model):
+    order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name="rating")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    car = models.ForeignKey(Car, on_delete=models.CASCADE)
+    rating = models.IntegerField(default=0)  # Rating from 1 to 5
+    feedback = models.TextField(blank=True, default="")  # Optional feedback
+    created_at = models.DateTimeField(auto_now_add = True)
+    def __str__(self):
+        return f"Rating: {self.rating} for {self.car} by {self.user}"
+
+    class Meta:
+        unique_together = ['order', 'user']  
+
+
 class Driver(models.Model):
     name = models.CharField(max_length=100)
     license_number = models.CharField(max_length=50)

@@ -1,0 +1,102 @@
+{% extends 'manager/basemanager.html' %}
+
+{% block title %}GPS Tracking{% endblock %}
+
+{% block header %}GPS Tracking Overview{% endblock %}
+
+{% block content %}
+<style>
+    .gps-section {
+        margin-bottom: 30px;
+    }
+    
+    .gps-table {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+  
+    /* Ensure the map container has a set height */
+    #map {
+        height: 600px; 
+        width: 100%;
+    }
+</style>
+<!-- Leaflet.js CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+crossorigin=""/>
+<!-- Leaflet.js JS -->
+
+{% if messages %}
+  <div class="alert-messages">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} fade " role="alert">
+      {{ message }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+<section class="gps-section">
+    <h3>GPS Tracking</h3>
+
+    <!-- GPS Tracking Table -->
+    <table class="gps-table table table-bordered">
+        <thead>
+            <tr>
+                <th>Vehicle ID</th>
+                <th>Vehicle Model</th>
+                <th>Current Location</th>
+                <th>Last Updated</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for vehicle in vehicle_data %}
+            <tr>
+                <td>{{ vehicle.car.id }}</td>
+                <td>{{ vehicle.car.car_name }}</td>
+                <td>{{ vehicle.location.latitude }}, {{ vehicle.location.longitude }}</td>
+                <td>{{ vehicle.location.last_updated|date:"Y-m-d H:i" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4">No vehicles are currently being tracked.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+
+<!-- Map Section -->
+<section class="map-section">
+    <h3>Map View</h3>
+    <div id="map" ></div> <!-- Map Container -->
+</section>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
+<!-- Leaflet.js Map Script -->
+<script>
+    // Initialize the map centered on a default location (California, Los Angeles)
+    var map = L.map('map')
+    map.setView([51.505, -0.09], 13);
+    // Add OpenStreetMap tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);    
+
+    {% for vehicle in vehicle_data %}
+        // Extract latitude and longitude for each vehicle's location
+        var lat = {{ vehicle.location.latitude }};
+        var lon = {{ vehicle.location.longitude }};
+
+        // Add a marker for each tracked vehicle on the map
+        var marker = L.marker([lat, lon]).addTo(map)
+            .bindPopup("<b>{{ vehicle.car.car_name }}</b><br>{{ vehicle.car.user.first_name }} {{ vehicle.car.user.last_name }}<br>Last Updated: {{ vehicle.location.timestamp|date:'Y-m-d H:i' }}")
+            .openPopup();
+    {% empty %}
+        console.log("No vehicles are currently being tracked.");
+    {% endfor %}
+</script>
+
+{% endblock %}

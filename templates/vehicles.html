@@ -123,6 +123,9 @@
                   <p class="card-text" style="font-size: 16px; font-weight: bold;">
                     Price per Day: ₹{{ i.price }}
                   </p>
+
+                  <i class="fa fa-star" style="color: #f39c12;"></i>
+
                   <div class="mt-auto d-flex justify-content-center">
                     <a href="{% url 'car_detail' i.id %}" 
                        class="btn btn-dark btn-sm {% if not i.available %} disabled{% endif %}"
