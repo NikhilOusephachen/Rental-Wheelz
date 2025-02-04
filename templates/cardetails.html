@@ -30,8 +30,40 @@ Car Details
         <!-- Car Image or 360 Viewer -->
         <div class="col-md-6">
           <div class="card mb-4 shadow-sm">
-            <div id="carViewer" class="d-block w-100" style="height: 400px;"></div>
-            <button id="toggle360" class="btn btn-dark mt-2 w-100">Toggle 360° View</button>
+            <!-- Image Carousel -->
+            <div id="carImageCarousel" class="carousel slide" data-ride="carousel">
+              <div class="carousel-inner">
+                <!-- Regular Image -->
+                <div class="carousel-item active">
+                  <div id="regularImageContainer">
+                    <img src="/media/{{ car.image }}" alt="car" class="d-block w-100" height="400" style="object-fit: cover;" />
+                  </div>
+                </div>
+                <!-- 360 Image -->
+                {% if car.image_360 %}
+                <div class="carousel-item">
+                  <div id="carViewer" class="d-block w-100" style="height: 400px;">
+                    <img src="/media/{{ car.image_360 }}" alt="360 view" class="d-block w-100" height="400" style="object-fit: cover;" />
+                  </div>
+                </div>
+                {% endif %}
+              </div>
+              <!-- Carousel Controls -->
+              <a class="carousel-control-prev" href="#carImageCarousel" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="carousel-control-next" href="#carImageCarousel" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
+            <!-- 360 Controls -->
+            <div class="btn-group w-100">
+              <button id="toggle360" class="btn btn-dark mt-2" disabled>Toggle 360° View</button>
+              <button id="startAutorotate" class="btn btn-dark mt-2" style="display: none;">Start Rotation</button>
+              <button id="stopAutorotate" class="btn btn-dark mt-2" style="display: none;">Stop Rotation</button>
+            </div>
           </div>
         </div>
 
@@ -120,39 +152,134 @@ Car Details
 <script src="https://cdn.jsdelivr.net/npm/photo-sphere-viewer@4/dist/photo-sphere-viewer.min.js"></script>
 
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    let viewer;
+document.addEventListener("DOMContentLoaded", function () {
+    let viewer = null;
     let is360Active = false;
-    let container = document.getElementById("carViewer");
-
-    function showImage() {
-      container.innerHTML = `<img src="/media/{{ car.image }}" alt="car" class="d-block w-100" height="400" />`;
-    }
-
-    function show360View() {
-      viewer = new PhotoSphereViewer.Viewer({
-        container: container,
-        panorama: "/media/{{ car.image }}", // Ensure this is a proper 360° equirectangular image
-        caption: "360° View of the Car",
-        loadingImg: "https://cdn.jsdelivr.net/npm/photo-sphere-viewer@4/assets/photosphere-logo.gif",
-        navbar: ["autorotate", "zoom", "move", "fullscreen", "download", "caption"],
-        defaultZoomLvl: 50,
-        mousewheel: false,
-      });
-    }
-
-    document.getElementById("toggle360").addEventListener("click", function () {
-      if (is360Active) {
-        showImage();
-      } else {
-        show360View();
-      }
-      is360Active = !is360Active;
+    const container = document.getElementById("carViewer");
+    const toggle360Btn = document.getElementById("toggle360");
+    const startAutorotateBtn = document.getElementById("startAutorotate");
+    const stopAutorotateBtn = document.getElementById("stopAutorotate");
+    
+    // Store the original 360 image source
+    const original360Image = container ? container.querySelector('img').src : null;
+    
+    // Handle carousel slide event
+    $('#carImageCarousel').on('slide.bs.carousel', function (e) {
+        // Cleanup existing viewer if it exists
+        if (viewer) {
+            viewer.destroy();
+            viewer = null;
+            is360Active = false;
+        }
+        
+        // Enable/disable 360 button based on which slide is active
+        if ($(e.relatedTarget).find('#carViewer').length) {
+            toggle360Btn.removeAttribute('disabled');
+            // Restore the static 360 image
+            const viewerContainer = $(e.relatedTarget).find('#carViewer');
+            viewerContainer.html(`<img src="${original360Image}" alt="360 view" class="d-block w-100" height="400" style="object-fit: cover;" />`);
+        } else {
+            toggle360Btn.setAttribute('disabled', 'disabled');
+            startAutorotateBtn.style.display = 'none';
+            stopAutorotateBtn.style.display = 'none';
+        }
     });
 
-    // Load default image first
-    showImage();
-  });
+    function show360View() {
+        // Clear the container first
+        if (container) {
+            container.innerHTML = '';
+        }
+
+        try {
+            viewer = new PhotoSphereViewer.Viewer({
+                container: container,
+                panorama: original360Image,
+                caption: "360° View of {{ car.car_name }}",
+                navbar: [
+                    'autorotate',
+                    'zoom',
+                    'move',
+                    'fullscreen',
+                ],
+                defaultZoomLvl: 50,
+                mousewheel: true,
+                touchmoveTwoFingers: true,
+                moveSpeed: 1,
+                autorotateSpeed: '2rpm',
+                autorotateDelay: 1000,
+            });
+
+            startAutorotateBtn.style.display = 'inline-block';
+            stopAutorotateBtn.style.display = 'inline-block';
+            return true;
+        } catch (error) {
+            console.error('Error initializing viewer:', error);
+            return false;
+        }
+    }
+
+    function showStaticImage() {
+        if (viewer) {
+            viewer.destroy();
+            viewer = null;
+        }
+        // Restore the original image
+        container.innerHTML = `<img src="${original360Image}" alt="360 view" class="d-block w-100" height="400" style="object-fit: cover;" />`;
+        startAutorotateBtn.style.display = 'none';
+        stopAutorotateBtn.style.display = 'none';
+    }
+
+    toggle360Btn.addEventListener("click", function () {
+        if (!is360Active) {
+            if (show360View()) {
+                is360Active = true;
+            }
+        } else {
+            showStaticImage();
+            is360Active = false;
+        }
+    });
+
+    startAutorotateBtn.addEventListener("click", function() {
+        if (viewer) {
+            viewer.startAutorotate();
+        }
+    });
+
+    stopAutorotateBtn.addEventListener("click", function() {
+        if (viewer) {
+            viewer.stopAutorotate();
+        }
+    });
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', function() {
+        if (viewer) {
+            viewer.destroy();
+        }
+    });
+});
 </script>
+
+<style>
+.carousel-control-prev,
+.carousel-control-next {
+    background-color: rgba(0, 0, 0, 0.5);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.carousel-control-prev {
+    left: 10px;
+}
+
+.carousel-control-next {
+    right: 10px;
+}
+</style>
 
 {% endblock body %}

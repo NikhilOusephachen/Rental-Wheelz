@@ -294,19 +294,77 @@ def manager_car_drivers(request):
 
 def manager_driver_add(request):
     if request.method == 'POST':
-        name = request.POST.get('name')
-        license_number = request.POST.get('license_number')
-        phone_number = request.POST.get('phone_number')
+        name = request.POST.get('name', '')
+        license_number = request.POST.get('license_number', '')
+        phone_number = request.POST.get('phone_number', '')
         is_available = request.POST.get('is_available') == 'on'
+        
+        # Initialize context with form data
+        context = {
+            'name': name,
+            'license_number': license_number,
+            'phone_number': phone_number,
+            'is_available': is_available,
+            'errors': {}
+        }
+        
+        is_valid = True
+        
+        # Name validation
+        if not name or name.isspace():
+            context['errors']['name'] = 'Name is required'
+            is_valid = False
+        elif not all(char.isalpha() or char.isspace() for char in name.strip()):
+            context['errors']['name'] = 'Name should only contain letters and spaces'
+            is_valid = False
+        elif len(name.strip()) < 3:
+            context['errors']['name'] = 'Name should be at least 3 characters long'
+            is_valid = False
+            
+        # License number validation
+        if not license_number or license_number.isspace():
+            context['errors']['license_number'] = 'License number is required'
+            is_valid = False
+        elif len(license_number.strip()) < 8 or len(license_number.strip()) > 15:
+            context['errors']['license_number'] = 'License number should be between 8 and 15 characters'
+            is_valid = False
+        elif Driver.objects.filter(license_number=license_number.strip()).exists():
+            context['errors']['license_number'] = 'This license number is already registered'
+            is_valid = False
+            
+        # Phone number validation
+        if not phone_number or phone_number.isspace():
+            context['errors']['phone_number'] = 'Phone number is required'
+            is_valid = False
+        elif not phone_number.strip().isdigit():
+            context['errors']['phone_number'] = 'Phone number should only contain digits'
+            is_valid = False
+        elif len(phone_number.strip()) != 10:
+            context['errors']['phone_number'] = 'Phone number should be exactly 10 digits'
+            is_valid = False
+        elif Driver.objects.filter(phone_number=phone_number.strip()).exists():
+            context['errors']['phone_number'] = 'This phone number is already registered'
+            is_valid = False
 
-        # Create and save the new driver
-        new_driver = Driver(name=name, license_number=license_number,
-                            phone_number=phone_number, is_available=is_available)
-        new_driver.save()
+        if not is_valid:
+            messages.error(request, 'Please correct the errors below.')
+            return render(request, 'manager/manager_driver_add.html', context)
 
-        messages.success(request, 'Driver added successfully!')
-        # Redirect to a view that lists all drivers
-        return redirect('manager_car_drivers')
+        try:
+            # Create and save the new driver if validation passes
+            new_driver = Driver(
+                name=name.strip(),
+                license_number=license_number.strip(),
+                phone_number=phone_number.strip(),
+                is_available=is_available
+            )
+            new_driver.save()
+            messages.success(request, 'Driver added successfully!')
+            return redirect('manager_car_drivers')
+        except Exception as e:
+            messages.error(request, f'Error adding driver: {str(e)}')
+            return render(request, 'manager/manager_driver_add.html', context)
+
     return render(request, 'manager/manager_driver_add.html')
 
 

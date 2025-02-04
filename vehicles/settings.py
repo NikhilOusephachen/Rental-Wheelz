@@ -95,33 +95,33 @@ WSGI_APPLICATION = 'vehicles.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'carrental',
-#         'HOST': 'localhost',
-#         'USER': 'root',
-#         'PASSWORD': '',
-#         'PORT': '3306',
-#         'OPTIONS': {
-#             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-#         }
-#     }
-# }
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'carrentaloperation_coffeerun',
-        'HOST': 'lo5zx.h.filess.io',
-        'USER': 'carrentaloperation_coffeerun',
-        'PASSWORD': '3923168c73b5e53492c342b8a8ecb034cd0d373e',
-        'PORT': '3307',
+        'NAME': 'carrental',
+        'HOST': 'localhost',
+        'USER': 'root',
+        'PASSWORD': '',
+        'PORT': '3306',
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
         }
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'carrentaloperation_coffeerun',
+#         'HOST': 'lo5zx.h.filess.io',
+#         'USER': 'carrentaloperation_coffeerun',
+#         'PASSWORD': '3923168c73b5e53492c342b8a8ecb034cd0d373e',
+#         'PORT': '3307',
+#         'OPTIONS': {
+#             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+#         }
+#     }
+# }
 
 
 AUTH_USER_MODEL = 'user.CustomUser'

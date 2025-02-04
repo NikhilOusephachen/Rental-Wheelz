@@ -78,24 +78,55 @@
 
 <div class="container">
     <h2>Add Driver</h2>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+    
     <form method="POST" action="{% url 'manager_driver_add' %}">
         {% csrf_token %}
         <div class="form-group">
             <label for="id_name">Driver Name</label>
-            <input type="text" class="form-control" id="id_name" name="name" placeholder="Enter driver name" required>
+            <input type="text" class="form-control {% if errors.name %}is-invalid{% endif %}" 
+                   id="id_name" name="name" value="{{ name|default:'' }}" 
+                   placeholder="Enter driver name" required>
+            {% if errors.name %}
+                <div class="invalid-feedback">{{ errors.name }}</div>
+            {% endif %}
         </div>
+
         <div class="form-group">
             <label for="id_license_number">License Number</label>
-            <input type="text" class="form-control" id="id_license_number" name="license_number" placeholder="Enter license number" required>
+            <input type="text" class="form-control {% if errors.license_number %}is-invalid{% endif %}" 
+                   id="id_license_number" name="license_number" 
+                   value="{{ license_number|default:'' }}" 
+                   placeholder="Enter license number" required>
+            {% if errors.license_number %}
+                <div class="invalid-feedback">{{ errors.license_number }}</div>
+            {% endif %}
         </div>
+
         <div class="form-group">
             <label for="id_phone_number">Phone Number</label>
-            <input type="tel" class="form-control" id="id_phone_number" name="phone_number" placeholder="Enter phone number" required>
+            <input type="tel" class="form-control {% if errors.phone_number %}is-invalid{% endif %}" 
+                   id="id_phone_number" name="phone_number" 
+                   value="{{ phone_number|default:'' }}" 
+                   placeholder="Enter phone number" required>
+            {% if errors.phone_number %}
+                <div class="invalid-feedback">{{ errors.phone_number }}</div>
+            {% endif %}
         </div>
+
         <div class="form-group form-check">
-            <input type="checkbox" class="form-check-input" id="id_is_available" name="is_available">
+            <input type="checkbox" class="form-check-input" 
+                   id="id_is_available" name="is_available" 
+                   {% if is_available %}checked{% endif %}>
             <label class="form-check-label" for="id_is_available">Available</label>
         </div>
+
         <button type="submit" class="btn btn-primary">Add Driver</button>
         <a href="{% url 'manager_car_drivers' %}" class="btn-cancel">Cancel</a>
     </form>
