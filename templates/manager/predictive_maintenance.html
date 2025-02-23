@@ -1,0 +1,277 @@
+{% extends 'manager/basemanager.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mt-4">Predictive Maintenance Analysis</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'manager_dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active">Predictive Maintenance</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="row">
+        <!-- Vehicle Info Card -->
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="m-0"><i class="fas fa-car me-2"></i>Vehicle Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ car.car_name }}</div>
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                {{ car.car_brand }} {{ car.car_model }}
+                            </div>
+                            <div class="mt-2">
+                                <span class="badge bg-info">{{ car.car_fuel }}</span>
+                                <span class="badge bg-secondary">{{ car.transmission }}</span>
+                                <span class="badge bg-dark">{{ car.year }}</span>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-tools me-2"></i>Maintenance Prediction Form
+                    </h6>
+                    {% if error %}
+                    <div class="alert alert-danger py-2 px-3 m-0">
+                        <i class="fas fa-exclamation-circle me-2"></i>{{ error }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <form method="POST" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        <div class="row">
+                            <!-- Vehicle Metrics -->
+                            <div class="col-md-6">
+                                <h5 class="text-dark mb-3">Vehicle Metrics</h5>
+                                <div class="form-floating mb-3">
+                                    <input type="number" name="mileage" class="form-control" id="mileage" required>
+                                    <label for="mileage">Current Mileage *</label>
+                                </div>
+                                
+                                <div class="form-floating mb-3">
+                                    <input type="number" name="odometer_reading" class="form-control" id="odometer_reading" required>
+                                    <label for="odometer_reading">Odometer Reading *</label>
+                                </div>
+                                
+                                <div class="form-floating mb-3">
+                                    <input type="number" name="days_since_last_service" class="form-control" id="days_since_last_service" required>
+                                    <label for="days_since_last_service">Days Since Last Service *</label>
+                                </div>
+                                
+                                <div class="form-floating mb-3">
+                                    <input type="number" name="engine_size" class="form-control" id="engine_size" value="2000" required>
+                                    <label for="engine_size">Engine Size (cc) *</label>
+                                </div>
+                            </div>
+                            
+                            <!-- Maintenance History -->
+                            <div class="col-md-6">
+                                <h5 class="text-dark mb-3">Maintenance History</h5>
+                                <div class="form-floating mb-3">
+                                    <input type="number" name="service_history" class="form-control" id="service_history" value="0" required>
+                                    <label for="service_history">Number of Services *</label>
+                                </div>
+                                
+                                <div class="form-floating mb-3">
+                                    <input type="number" name="accident_history" class="form-control" id="accident_history" value="0" required>
+                                    <label for="accident_history">Number of Accidents *</label>
+                                </div>
+                                
+                                <div class="form-floating mb-3">
+                                    <select name="maintenance_history" class="form-select" id="maintenance_history" required>
+                                        <option value="Good">Good</option>
+                                        <option value="Average">Average</option>
+                                        <option value="Poor">Poor</option>
+                                    </select>
+                                    <label for="maintenance_history">Maintenance History *</label>
+                                </div>
+                            </div>
+
+                            <!-- Current Conditions -->
+                            <div class="col-12">
+                                <h5 class="text-dark mb-3">Current Conditions</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-floating mb-3">
+                                            <select name="tire_condition" class="form-select" id="tire_condition" required>
+                                                <option value="Good">Good</option>
+                                                <option value="New">New</option>
+                                                <option value="Worn Out">Worn Out</option>
+                                            </select>
+                                            <label for="tire_condition">Tire Condition *</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-floating mb-3">
+                                            <select name="brake_condition" class="form-select" id="brake_condition" required>
+                                                <option value="Good">Good</option>
+                                                <option value="New">New</option>
+                                                <option value="Worn Out">Worn Out</option>
+                                            </select>
+                                            <label for="brake_condition">Brake Condition *</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg px-5">
+                                <i class="fas fa-calculator me-2"></i>Generate Prediction
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if prediction %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 {% if prediction.prediction_result %}bg-warning{% else %}bg-success{% endif %} text-white">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="fas fa-chart-line me-2"></i>Prediction Results
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="text-center mb-4">
+                                <h4 class="mb-0 {% if prediction.prediction_result %}text-warning{% else %}text-success{% endif %}">
+                                    {% if prediction.prediction_result %}
+                                    <i class="fas fa-exclamation-triangle me-2"></i>Maintenance Required
+                                    {% else %}
+                                    <i class="fas fa-check-circle me-2"></i>Good Condition
+                                    {% endif %}
+                                </h4>
+                                <div class="mt-2">
+                                    <h5>Confidence: {{ prediction.prediction_probability|floatformat:2 }}%</h5>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="text-dark mb-3">Input Parameters</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <tr>
+                                        <th>Mileage:</th>
+                                        <td>{{ prediction.mileage|floatformat:0 }}</td>
+                                        <th>Days Since Service:</th>
+                                        <td>{{ prediction.days_since_last_service }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Service History:</th>
+                                        <td>{{ prediction.service_history }}</td>
+                                        <th>Accidents:</th>
+                                        <td>{{ prediction.accident_history }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Tire Condition:</th>
+                                        <td>{{ prediction.tire_condition }}</td>
+                                        <th>Brake Condition:</th>
+                                        <td>{{ prediction.brake_condition }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if predictions %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-history me-2"></i>Previous Predictions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Mileage</th>
+                                    <th>Days Since Service</th>
+                                    <th>Maintenance History</th>
+                                    <th>Result</th>
+                                    <th>Confidence</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for pred in predictions %}
+                                <tr>
+                                    <td>{{ pred.created_at|date:"Y-m-d H:i" }}</td>
+                                    <td>{{ pred.mileage|floatformat:0 }}</td>
+                                    <td>{{ pred.days_since_last_service }}</td>
+                                    <td>{{ pred.maintenance_history }}</td>
+                                    <td>
+                                        {% if pred.prediction_result %}
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>Needs Maintenance
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check-circle me-1"></i>Good Condition
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ pred.prediction_probability|floatformat:2 }}%</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% block extra_js %}
+<script>
+    // Form validation
+    (function () {
+        'use strict'
+        var forms = document.querySelectorAll('.needs-validation')
+        Array.prototype.slice.call(forms)
+            .forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+                    form.classList.add('was-validated')
+                }, false)
+            })
+    })()
+</script>
+{% endblock %}
+{% endblock %} 

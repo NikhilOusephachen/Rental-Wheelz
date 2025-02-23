@@ -5,6 +5,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
 from .models import *
 from django.db.models import Q,Avg
+from django.contrib.auth.decorators import login_required
+from user.models import CustomUser
+from .models import ChatMessage
+from django.http import JsonResponse
 
 
 def index(request):
@@ -123,4 +127,104 @@ def contact(request):
         return redirect('contact')
 
     return render(request, 'contact.html')
+
+
+@login_required
+def manager_predictive_maintenance(request, car_id):
+    car = get_object_or_404(Car, id=car_id)
+    context = {
+        'car': car,
+        'predictions': MaintenancePrediction.objects.filter(car=car).order_by('-created_at')[:5]
+    }
+    
+    if request.method == 'POST':
+        try:
+            # [Previous prediction code remains the same]
+            
+            # After creating prediction, add it to context instead of redirecting
+            context['prediction'] = maintenance_prediction
+            
+        except Exception as e:
+            context['error'] = str(e)
+            print(f"Error during prediction: {str(e)}")
+
+    return render(request, 'manager/predictive_maintenance.html', context)
+
+
+@login_required
+def customer_chat(request):
+    managers = CustomUser.objects.filter(usertype__name='manager')
+    selected_manager_id = request.GET.get('manager_id')
+    selected_manager = None
+    messages = []
+
+    if selected_manager_id:
+        selected_manager = get_object_or_404(CustomUser, id=selected_manager_id, usertype__name='manager')
+        messages = ChatMessage.objects.filter(
+            Q(customer=request.user, manager=selected_manager) |
+            Q(manager=selected_manager, customer=request.user)
+        ).order_by('timestamp')
+    
+    if request.method == 'POST' and selected_manager:
+        message = request.POST.get('message')
+        if message:
+            ChatMessage.objects.create(
+                customer=request.user,
+                manager=selected_manager,
+                message=message,
+                sent_by_customer=True
+            )
+            return redirect(f'{request.path}?manager_id={selected_manager.id}')
+    
+    context = {
+        'managers': managers,
+        'selected_manager': selected_manager,
+        'messages': messages
+    }
+    return render(request, 'customer_chat.html', context)
+
+@login_required
+def manager_messages(request):
+    if not request.user.usertype.name == 'manager':
+        return redirect('home')
+    
+    # Get all messages for this manager to show in customer list
+    all_messages = ChatMessage.objects.filter(manager=request.user).order_by('-timestamp')
+    
+    # Get unique customers who have chatted with this manager
+    customers = CustomUser.objects.filter(
+        Q(customer_messages__manager=request.user)  # Messages from customers
+    ).distinct()
+    
+    selected_customer_id = request.GET.get('customer_id')
+    selected_customer = None
+    customer_chat = []
+
+    if selected_customer_id:
+        selected_customer = get_object_or_404(CustomUser, id=selected_customer_id)
+        customer_chat = ChatMessage.objects.filter(
+            Q(customer=selected_customer, manager=request.user) |
+            Q(manager=request.user, customer=selected_customer)
+        ).order_by('timestamp')
+    
+    if request.method == 'POST' and selected_customer:
+        message = request.POST.get('message')
+        if message:
+            ChatMessage.objects.create(
+                customer=selected_customer,
+                manager=request.user,
+                message=message,
+                sent_by_customer=False
+            )
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'status': 'success'})
+            return redirect(f'{request.path}?customer_id={selected_customer.id}')
+    
+    context = {
+        'all_messages': all_messages,
+        'customers': customers,
+        'selected_customer': selected_customer,
+        'customer_chat': customer_chat
+    }
+    return render(request, 'manager/manager_messages.html', context)
 

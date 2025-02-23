@@ -1,0 +1,42 @@
+/* Adjust these values to match your previous sizing */
+.container-fluid {
+    padding: 20px;
+    width: 100%;
+}
+
+.table {
+    width: 100%;
+    font-size: 14px;  /* Adjust font size */
+}
+
+.card {
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.card-body {
+    padding: 20px;
+}
+
+/* Adjust button sizes */
+.btn-sm {
+    padding: 5px 10px;
+    font-size: 14px;
+}
+
+/* Adjust form elements */
+.form-control {
+    font-size: 14px;
+    padding: 8px 12px;
+}
+
+/* Adjust headings */
+h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+/* Table cell padding */
+.table td, .table th {
+    padding: 12px;
+} 

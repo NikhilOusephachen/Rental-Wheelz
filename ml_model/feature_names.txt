@@ -1,0 +1,22 @@
+Mileage
+Maintenance_History
+Reported_Issues
+Fuel_Type
+Transmission_Type
+Engine_Size
+Odometer_Reading
+Service_History
+Accident_History
+Days_Since_Last_Service
+Vehicle_Model_Bus
+Vehicle_Model_Car
+Vehicle_Model_Motorcycle
+Vehicle_Model_SUV
+Vehicle_Model_Truck
+Vehicle_Model_Van
+Tire_Condition_Good
+Tire_Condition_New
+Tire_Condition_Worn Out
+Brake_Condition_Good
+Brake_Condition_New
+Brake_Condition_Worn Out

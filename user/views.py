@@ -5,15 +5,21 @@ from django.contrib import messages
 from booking.models import Order, Rating
 from myapp.forms import CarBrandForm, CarColorForm, CarForm, CarModelForm
 from django.db.models import Q
-from myapp.models import Brand, Car, CarColor, CarModel, CarTracking, CarLocation
+from myapp.models import Brand, Car, CarColor, CarModel, CarTracking, CarLocation, MaintenancePrediction
 from user.models import UserType
 from .forms import CustomUserCreationForm, ProfileUpdateForm
 from django.contrib.auth.views import LoginView
 from django.urls import reverse_lazy
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.views.generic import UpdateView
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+#from .services.maintenance_predictor import MaintenancePredictor
+import os
+import joblib
+import pandas as pd
+from django.conf import settings
+from datetime import datetime
 
 def register_view(request):
     if request.method == "POST":
@@ -519,3 +525,102 @@ def update_car_location(request, car_id):
         return redirect("manager_gps_overview")
 
     return render(request, "manager/update_car_location.html", {"car": car})
+
+
+@login_required
+def manager_predictive_maintenance(request, car_id):
+    car = get_object_or_404(Car, id=car_id)
+    context = {
+        'car': car,
+        'predictions': MaintenancePrediction.objects.filter(car=car).order_by('-created_at')[:5]
+    }
+    
+    if request.method == 'POST':
+        try:
+            # Load model and scaler
+            model_path = os.path.join(settings.BASE_DIR, 'ml_model', 'predictive_maintenance_model.pkl')
+            scaler_path = os.path.join(settings.BASE_DIR, 'ml_model', 'scaler.pkl')
+            
+            model = joblib.load(model_path)
+            scaler = joblib.load(scaler_path)
+
+            # Get feature names from the model
+            feature_names_path = os.path.join(settings.BASE_DIR, 'ml_model', 'feature_names.txt')
+            with open(feature_names_path, 'r') as f:
+                model_features = [line.strip() for line in f.readlines()]
+            
+            print("Available features:", model_features)  # Debug print
+
+            # Create input data dictionary
+            input_dict = {
+                'Mileage': float(request.POST.get('mileage', 0)),
+                'Odometer_Reading': float(request.POST.get('odometer_reading', 0)),
+                'Days_Since_Last_Service': float(request.POST.get('days_since_last_service', 0)),
+                'Engine_Size': float(request.POST.get('engine_size', 2000)),
+                'Service_History': float(request.POST.get('service_history', 0)),
+                'Accident_History': float(request.POST.get('accident_history', 0)),
+                'Maintenance_History': 2 if request.POST.get('maintenance_history') == 'Good' else 1 if request.POST.get('maintenance_history') == 'Average' else 0,
+                'Fuel_Type': 1 if str(car.car_fuel).lower() == 'petrol' else 0,
+                'Transmission_Type': 1 if str(car.transmission).lower() == 'automatic' else 0,
+                'Reported_Issues': 0  # Adding default value for Reported_Issues
+            }
+
+            # Get vehicle model and conditions
+            vehicle_model = str(car.car_model).upper()
+            tire_condition = request.POST.get('tire_condition', 'Good')
+            brake_condition = request.POST.get('brake_condition', 'Good')
+
+            # Add one-hot encoded columns
+            for model_type in ['SUV', 'Truck', 'Van', 'Car', 'Motorcycle', 'Bus']:
+                input_dict[f'Vehicle_Model_{model_type}'] = 1 if model_type == vehicle_model else 0
+
+            for condition in ['Good', 'New', 'Worn Out']:
+                input_dict[f'Tire_Condition_{condition}'] = 1 if condition == tire_condition else 0
+                input_dict[f'Brake_Condition_{condition}'] = 1 if condition == brake_condition else 0
+
+            # Create DataFrame with exact feature names
+            input_data = pd.DataFrame([input_dict])
+            input_data = input_data[model_features]  # Ensure columns match exactly
+
+            # Scale numerical features
+            numerical_features = [
+                'Mileage', 'Odometer_Reading', 'Days_Since_Last_Service',
+                'Engine_Size', 'Service_History', 'Accident_History'
+            ]
+            input_data[numerical_features] = scaler.transform(input_data[numerical_features])
+
+            # Make prediction
+            prediction = bool(model.predict(input_data)[0])
+            probability = float(model.predict_proba(input_data)[0][1])
+
+            # Save prediction
+            maintenance_prediction = MaintenancePrediction.objects.create(
+                car=car,
+                mileage=float(request.POST.get('mileage', 0)),
+                odometer_reading=float(request.POST.get('odometer_reading', 0)),
+                days_since_last_service=int(request.POST.get('days_since_last_service', 0)),
+                engine_size=float(request.POST.get('engine_size', 2000)),
+                service_history=int(request.POST.get('service_history', 0)),
+                accident_history=int(request.POST.get('accident_history', 0)),
+                maintenance_history=request.POST.get('maintenance_history', 'Good'),
+                fuel_type=car.car_fuel,
+                transmission_type=car.transmission,
+                vehicle_model=car.car_model,
+                tire_condition=request.POST.get('tire_condition', 'Good'),
+                brake_condition=request.POST.get('brake_condition', 'Good'),
+                prediction_result=prediction,
+                prediction_probability=probability * 100
+            )
+
+            context['prediction'] = maintenance_prediction
+
+        except Exception as e:
+            print(f"Error during prediction: {str(e)}")
+            context['error'] = str(e)
+
+    return render(request, 'manager/predictive_maintenance.html', context)
+
+
+
+
+

@@ -1,0 +1,35 @@
+Predictive Maintenance Model Summary
+--------------------------------------------------
+
+1. Model Performance
+Accuracy: 0.8859
+
+2. Classification Report
+              precision    recall  f1-score   support
+
+           0       0.66      0.83      0.74      1915
+           1       0.96      0.90      0.93      8085
+
+    accuracy                           0.89     10000
+   macro avg       0.81      0.87      0.83     10000
+weighted avg       0.90      0.89      0.89     10000
+
+3. Feature Importance (Top 10)
+Reported_Issues: 0.4143
+Brake_Condition_Worn Out: 0.2044
+Service_History: 0.0753
+Maintenance_History: 0.0590
+Brake_Condition_New: 0.0583
+Brake_Condition_Good: 0.0575
+Accident_History: 0.0513
+Mileage: 0.0185
+Odometer_Reading: 0.0182
+Days_Since_Last_Service: 0.0165
+
+4. Model Configuration
+- Algorithm: Random Forest Classifier
+- Number of trees: 100
+- Max depth: 10
+- Number of features: 22
+- Training set size: 40000
+- Test set size: 10000
