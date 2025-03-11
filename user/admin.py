@@ -16,7 +16,7 @@ class UserTypeAdmin(admin.ModelAdmin):
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
     # Fields to display in the admin list
-    list_display = ('username', 'usertype', 'email', 'phone_number')
+    list_display = ('username', 'usertype', 'email', 'phone_number', 'has_active_lease')
 
     # Fields to search in the admin
     search_fields = ('username', 'email', 'phone_number')
@@ -31,14 +31,29 @@ class CustomUserAdmin(UserAdmin):
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
         ('Personal info', {'fields': ('email', 'phone_number')}),
-        ('Permissions', {'fields': ('is_active', 'is_staff', 'usertype')}),
+        ('Permissions', {
+            'fields': (
+                'is_active', 
+                'is_staff', 
+                'usertype',
+                'groups',
+                'user_permissions'
+            ),
+        }),
     )
 
     # The fields to display when creating a new user
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('username', 'email', 'phone_number', 'password1', 'password2', 'usertype'),
+            'fields': (
+                'username', 
+                'email', 
+                'phone_number', 
+                'password1', 
+                'password2', 
+                'usertype'
+            ),
         }),
     )
 
@@ -51,6 +66,10 @@ class CustomUserAdmin(UserAdmin):
                     obj.set_password(form.cleaned_data['password1'])
             obj.save()
 
+    def has_active_lease(self, obj):
+        return obj.order_set.filter(is_lease=True, is_approved=True, payment_status=True).exists()
+    has_active_lease.boolean = True
+    has_active_lease.short_description = "Active Lease"
 
     # Register the Contact model
     @admin.register(Contact)

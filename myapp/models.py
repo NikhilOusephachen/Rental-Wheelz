@@ -88,6 +88,10 @@ class Car(models.Model):
     insurance_number = models.CharField(max_length=50, default="", blank=True)
     insurance_file = models.FileField(upload_to="car/insurance_files", blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    is_available_for_lease = models.BooleanField(default=False)
+    lease_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    minimum_lease_months = models.PositiveIntegerField(default=1)
+    maximum_lease_months = models.PositiveIntegerField(default=12)
 
     def __str__(self):
         return self.car_name

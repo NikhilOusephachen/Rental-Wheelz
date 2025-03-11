@@ -9,7 +9,9 @@ Order Details - {{ order.car.car_name }}
 
 {% block body %}
 <div class="container my-5">
-    <h2 class="text-center mb-4">Order Details</h2>
+    <h2 class="text-center mb-4">
+        {{ order.is_lease|yesno:"Lease,Rental" }} Order Details
+    </h2>
 
     <div class="card shadow-sm mb-4">
         <div class="card-body">
@@ -22,105 +24,87 @@ Order Details - {{ order.car.car_name }}
             {% endif %}
 
             <div class="row">
-                <!-- Text Details on the Left Side -->
+                <!-- Order Details -->
                 <div class="col-md-6">
-                    <h5 class="card-title">Order ID: {{ order.id }}</h5>
+                    <h5 class="card-title">Order Information</h5>
+                    <p><strong>Order ID:</strong> {{ order.id }}</p>
+                    <p><strong>Type:</strong> {{ order.is_lease|yesno:"Lease,Rental" }}</p>
                     <p><strong>Car Name:</strong> {{ order.car.car_name }}</p>
                     <p><strong>Car Model:</strong> {{ order.car.car_model.model_name }}</p>
                     <p><strong>Color:</strong> {{ order.car.car_color.color }}</p>
                     <p><strong>Fuel:</strong> {{ order.car.car_fuel.fuel }}</p>
-                    <p><strong>Pickup Date:</strong> {{ order.bill.pick_up_date }}</p>
-                    <p><strong>Rent End Date:</strong> {{ order.bill.rent_end_date }}</p>
-                    <p><strong>Total Rent:</strong> ₹{{ order.bill.total_rent }}</p>
+                    <p><strong>Start Date:</strong> {{ order.bill.pick_up_date }}</p>
+                    <p><strong>End Date:</strong> {{ order.bill.rent_end_date }}</p>
+                    {% if order.is_lease %}
+                        <p><strong>Lease Period:</strong> {{ order.bill.no_of_months }} months</p>
+                        <p><strong>Monthly Rate:</strong> ₹{{ order.car.lease_price }}</p>
+                    {% else %}
+                        <p><strong>Rental Period:</strong> {{ order.bill.no_of_days }} days</p>
+                        <p><strong>Daily Rate:</strong> ₹{{ order.car.price }}</p>
+                    {% endif %}
+                    <p><strong>Total Amount:</strong> ₹{{ order.bill.total_rent }}</p>
                     <p><strong>From Location:</strong> {{ order.bill.from_loc }}</p>
                     <p><strong>To Location:</strong> {{ order.bill.to_loc }}</p>
-                    <p><strong>Address:</strong> {{ order.address }}</p>
                     <p><strong>Status:</strong> {% if order.is_approved %} Approved {% else %} Not Approved {% endif %}</p>
                     <p><strong>Payment Status:</strong> {% if order.payment_status %} Paid {% else %} Unpaid {% endif %}</p>
                 </div>
 
-                <!-- Image on the Right Side -->
+                <!-- Car Image and Additional Info -->
                 <div class="col-md-6">
-                    <img src="{{ order.car.image.url }}" class="img-fluid" alt="{{ order.car.car_name }}" style="max-height: 200px; object-fit: cover;">
-                    <div class="mt-2">
-                         <!-- Button Form for Assign Driver -->
-                        <form method="POST" action="{% url 'order_detail' order.id %}">
-                            {% csrf_token %}
-                            <button type="submit" class="btn {% if order.is_assigned %}btn-secondary disabled{% else %}btn-primary{% endif %}" 
-                                    {% if order.is_assigned %}disabled{% endif %}>
-                                {% if order.is_assigned %}Driver Assigned{% else %}Assign Driver{% endif %}
-                            </button>
-                        </form>
-                        <div class="card mt-3" style="max-width: 18rem;">
+                    <img src="{{ order.car.image.url }}" class="img-fluid mb-3" alt="{{ order.car.car_name }}">
+                    
+                    {% if not order.is_lease %}
+                        <!-- Driver Assignment Section (Only for Rentals) -->
+                        <div class="card mt-3">
                             <div class="card-body">
-                                <h5 class="card-title">
-                                    {% if order.is_assigned %}Driver Assigned{% else %}No Driver Assigned{% endif %}
-                                </h5>
-                                <p class="card-text">
-                                    {% if order.is_assigned and driver %}
-                                        <strong>Assigned Driver:</strong> {{ driver.driver.name }} <br>
-                                        <strong>License Number:</strong> {{ driver.driver.license_number }} <br>
-                                        <strong>Phone Number:</strong> {{ driver.driver.phone_number }}
-                                    {% else %}
-                                        No driver has been assigned yet.
+                                <h5 class="card-title">Driver Information</h5>
+                                {% if order.is_assigned and driver %}
+                                    <p><strong>Driver Name:</strong> {{ driver.driver.name }}</p>
+                                    <p><strong>License Number:</strong> {{ driver.driver.license_number }}</p>
+                                    <p><strong>Phone Number:</strong> {{ driver.driver.phone_number }}</p>
+                                {% else %}
+                                    <p>No driver has been assigned yet.</p>
+                                    {% if not order.is_assigned %}
+                                        <form method="POST">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-primary">Request Driver</button>
+                                        </form>
                                     {% endif %}
-                                </p>
+                                {% endif %}
                             </div>
                         </div>
-                    </div>
+                    {% endif %}
                 </div>
             </div>
 
-            {% if order.is_approved %}
-            
-            <div class="container mt-5">
-                <h2>Rate {{ order.car.car_name }}</h2>
-                <form method="POST" action="{% url 'create_rating' order.car.id order.id %}">
-                    {% csrf_token %}
-                    <div class="form-group">
-                      <label for="rating">Rating (1-5)</label>
-                      <input
-                        type="number"
-                        class="form-control"
-                        id="rating"
-                        name="rating"
-                        min="1"
-                        max="5"
-                        value="{{ existing_rating.rating|default:'' }}"
-                        required
-                      />
-                    </div>
-                    <div class="form-group">
-                      <label for="feedback">Your Feedback</label>
-                      <textarea
-                        class="form-control"
-                        id="feedback"
-                        name="feedback"
-                        rows="3"
-                        placeholder="Write your feedback here..."
-                      >{{ existing_rating.feedback|default:'' }}</textarea>
-                    </div>
-                    <button type="submit" class="btn btn-dark mt-3">
-                      {% if existing_rating %}Update Rating{% else %}Submit Rating{% endif %}
-                    </button>
-                  </form>
-                  
-              </div>
-              {% else %}
+            <!-- Rating Section -->
+            {% if order.payment_status and order.is_approved %}
+                <div class="mt-4">
+                    <h5>Rate Your Experience</h5>
+                    <form method="POST" action="{% url 'create_rating' order.car.id order.id %}">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="rating">Rating (1-5 stars)</label>
+                            <input type="number" class="form-control" id="rating" name="rating" 
+                                   min="1" max="5" value="{{ existing_rating.rating|default:5 }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="feedback">Your Feedback</label>
+                            <textarea class="form-control" id="feedback" name="feedback" rows="3">{{ existing_rating.feedback|default:'' }}</textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            {% if existing_rating %}Update{% else %}Submit{% endif %} Rating
+                        </button>
+                    </form>
+                </div>
+            {% endif %}
 
-              {% endif %}
-
-           <!-- Button to redirect to the realbill page -->
+            <!-- Action Buttons -->
             <div class="text-center mt-4">
-                <a href="{% url 'real_bill' order.id %}" class="btn" style="background-color: #007bff; color: white;">Bill</a>
+                <a href="{% url 'real_bill' order.id %}" class="btn btn-info">View Bill</a>
+                <a href="{% url 'view_order' %}" class="btn btn-secondary">Back to Orders</a>
             </div>
-
-
         </div>
-    </div>
-
-    <div class="text-center">
-        <a href="{% url 'view_order' %}" class="btn btn-primary">Back to Orders</a>
     </div>
 </div>
 

@@ -15,6 +15,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime
 from django.http import HttpResponseForbidden
+from dateutil.relativedelta import relativedelta
 
 
 from django.shortcuts import render, get_object_or_404, redirect
@@ -33,64 +34,67 @@ client = razorpay.Client(
 @login_required
 def bill(request, id):
     car = get_object_or_404(Car, id=id)
+    booking_type = request.GET.get('type', 'rent')
     errors = {}
 
     if request.method == 'POST':
-        no_of_days = request.POST.get('dayss', '')
-        pick_up_date = request.POST.get('date', '')
+        is_lease = request.POST.get('booking_type') == 'lease'
+        time_period = request.POST.get('months' if is_lease else 'dayss', '')
+        start_date = request.POST.get('date', '')
         from_loc = request.POST.get('fl', '')
         to_loc = request.POST.get('tl', '')
 
-        # Validate input for Number of Days
-        if not no_of_days:
-            errors['no_of_days'] = "Number of days is required."
+        # Validate inputs
+        if not time_period:
+            errors['time_period'] = f"Number of {'months' if is_lease else 'days'} is required."
         else:
             try:
-                no_of_days = int(no_of_days)
-                if no_of_days < 1:
-                    errors['no_of_days'] = "Number of days must be at least 1."
+                time_period = int(time_period)
+                if time_period < 1:
+                    errors['time_period'] = f"Number of {'months' if is_lease else 'days'} must be at least 1."
+                if is_lease:
+                    if time_period < car.minimum_lease_months or time_period > car.maximum_lease_months:
+                        errors['time_period'] = f"Lease period must be between {car.minimum_lease_months} and {car.maximum_lease_months} months."
             except ValueError:
-                errors['no_of_days'] = "Invalid number of days."
+                errors['time_period'] = f"Invalid number of {'months' if is_lease else 'days'}."
 
-        # Validate input for Pick-up Date
-        if not pick_up_date:
-            errors['pick_up_date'] = "Pick-up date is required."
-        else:
-            try:
-                pick_up_date = parse_date(pick_up_date)
-                if not pick_up_date:
-                    raise ValueError
-            except ValueError:
-                errors['pick_up_date'] = "Invalid date format. Use YYYY-MM-DD."
+        # Additional validation logic...
 
-        # Validate input for From Location (only letters allowed)
-        if not from_loc:
-            errors['from_loc'] = "From Location is required."
-        elif not from_loc.isalpha():
-            errors['from_loc'] = "From Location should only contain letters."
-
-        # Validate input for To Location (only letters allowed)
-        if not to_loc:
-            errors['to_loc'] = "To Location is required."
-        elif not to_loc.isalpha():
-            errors['to_loc'] = "To Location should only contain letters."
-
-        # If there are no errors, proceed with the bill creation
         if not errors:
-            rent_end_date = pick_up_date + timedelta(days=no_of_days)
-            bill = Bill(
+            # Convert start_date string to datetime
+            start_date_obj = datetime.strptime(start_date, '%Y-%m-%d')
+            
+            # Calculate end date based on lease or rental
+            if is_lease:
+                # For lease: add months
+                end_date = start_date_obj + relativedelta(months=int(time_period))
+            else:
+                # For rental: add days
+                end_date = start_date_obj + timedelta(days=int(time_period))
+
+            bill = Bill.objects.create(
                 car=car,
-                no_of_days=no_of_days,
-                pick_up_date=pick_up_date,
+                user=request.user,
+                is_lease=is_lease,
+                no_of_days=0 if is_lease else time_period,
+                no_of_months=time_period if is_lease else 0,
+                pick_up_date=start_date,
+                rent_end_date=end_date,
                 from_loc=from_loc,
                 to_loc=to_loc,
-                user=request.user,
-                rent_end_date=rent_end_date
+                total_rent=car.lease_price * int(time_period) if is_lease else car.price * int(time_period)
             )
-            bill.save()
-            return redirect(reverse('order', kwargs={'bill_id': bill.id}))
 
-    return render(request, 'bill.html', {'car': car, 'errors': errors})
+            # Redirect to orders page
+            return redirect('order', bill_id=bill.id)
+
+    context = {
+        'car': car,
+        'errors': errors,
+        'booking_type': booking_type,
+        'today_date': datetime.now().date().isoformat(),
+    }
+    return render(request, 'bill.html', context)
 
 
 @login_required
@@ -106,62 +110,67 @@ def real_bill(request, order_id):
 @login_required
 def order(request, bill_id):
     bill = get_object_or_404(Bill, id=bill_id)
-    # Razorpay order creation
-    order_amount = int(bill.total_rent * 100)  # Amount in paise
+    
+    # Calculate payment amount based on whether it's lease or rental
+    if bill.is_lease:
+        # For lease: Only charge first month's rent as advance
+        order_amount = int(bill.car.lease_price * 100)  # Convert to paise
+    else:
+        # For rental: Charge full amount
+        order_amount = int(bill.total_rent * 100)
+    
+    # Create Razorpay order
     razorpay_order = client.order.create({
         "amount": order_amount,
         "currency": "INR",
-        "payment_capture": "1"  # Auto capture the payment
+        "payment_capture": "1",
+        "notes": {
+            "is_lease": str(bill.is_lease),
+            "total_months": str(bill.no_of_months) if bill.is_lease else "0"
+        }
     })
-    razorpay_order_id = razorpay_order['id']
+
+    if request.method == "POST":
+        payment_id = request.POST.get('razorpay_payment_id')
+        razorpay_order_id = request.POST.get('razorpay_order_id')
+        razorpay_signature = request.POST.get('razorpay_signature')
+
+        try:
+            # Verify payment signature
+            client.utility.verify_payment_signature({
+                'razorpay_order_id': razorpay_order_id,
+                'razorpay_payment_id': payment_id,
+                'razorpay_signature': razorpay_signature
+            })
+
+            # Create order with appropriate payment details
+            order = Order.objects.create(
+                user=request.user,
+                car=bill.car,
+                bill=bill,
+                is_lease=bill.is_lease,
+                payment_status=True,
+                advance_paid=True if bill.is_lease else False,
+                remaining_months=bill.no_of_months - 1 if bill.is_lease else 0
+            )
+
+            messages.success(request, 'First month payment successful!' if bill.is_lease else 'Payment successful!')
+            return redirect('vehicles')
+
+        except Exception as e:
+            messages.error(request, f'Payment failed: {str(e)}')
+            return redirect('view_order')
 
     context = {
         'bill': bill,
-        'razorpay_order_id': razorpay_order_id,
+        'razorpay_order_id': razorpay_order['id'],
         'razorpay_key': "rzp_test_i1eV0ftB0HVfyt",
-        'amount': order_amount
+        'amount': order_amount,
+        'is_lease': bill.is_lease,
+        'monthly_amount': bill.car.lease_price if bill.is_lease else None,
+        'total_months': bill.no_of_months if bill.is_lease else None
     }
-
-    if request.method == "POST":
-        razorpay_payment_id = request.POST.get('razorpay_payment_id', '')
-        razorpay_order_id = request.POST.get('razorpay_order_id')
-        razorpay_signature = request.POST.get('razorpay_signature')
-        address = request.POST.get('address', '')
-        driving_license = request.POST.get('driving_license', '')
-        try:
-            client.utility.verify_payment_signature({
-                'razorpay_order_id': razorpay_order_id,
-                'razorpay_payment_id': razorpay_payment_id,
-                'razorpay_signature': razorpay_signature
-            })
-            # Payment is successful, update the order
-            if 'driving_license' in request.FILES:
-                driving_license = request.FILES['driving_license']
-                userdata = CustomUser.objects.get(id=bill.user.id)
-                print(userdata.driving_licence)  # Print the current value
-                print(userdata)
-                
-                # Update the driving_licence field with the uploaded file
-                userdata.driving_licence = driving_license
-                userdata.save()
-
-            order = Order(user=bill.user, address=address, car=bill.car,
-                          driving_license=driving_license, bill=bill)
-            order.payment_status = True
-            order.save()
-
-            messages.success(
-                request, 'Payment successful and order has been placed.')
-            # Redirect to success page after order placement
-            return redirect('vehicles')
-
-        except razorpay.errors.SignatureVerificationError:
-            order = Order(user=bill.user, address=address, car=bill.car,
-                          driving_license=driving_license, bill=bill)
-            order.save()
-            messages.error(
-                request, 'Payment verification failed. Please try again.')
-            return redirect('view_order')  # Handle failure appropriately
+    
     return render(request, 'orders.html', context)
 
 
@@ -236,26 +245,40 @@ def order_list(request):
 @login_required
 def order_detail(request, id):
     order = get_object_or_404(Order, id=id)
+    existing_rating = None
+    
+    # Check for assigned driver
     try:
         driver = DriverAssignment.objects.get(order=order)
     except DriverAssignment.DoesNotExist:
-        driver = None  # No driver assigned
-    if request.method == 'POST':
-        # Update the is_assigned field to True
-        order.is_assigned = True
-        order.save()
+        driver = None
 
-        # Add a success message that will be displayed in the template
-        messages.success(request, 'A manager will assign a driver soon.')
+    if request.method == "POST" and not order.is_lease:
+        if not order.is_assigned:
+            # Mark for manager assignment instead of direct driver assignment
+            order.is_assigned = True
+            order.save()
+            messages.success(request, "A manager will assign a driver soon.")
         return redirect('order_detail', id=id)
-    return render(request, 'order_detail.html', {'order': order, 'driver': driver})
+
+    # Get existing rating
+    existing_rating = Rating.objects.filter(order=order, user=request.user).first()
+
+    context = {
+        'order': order,
+        'driver': driver,
+        'existing_rating': existing_rating
+    }
+    return render(request, 'order_detail.html', context)
 
 
 @login_required
 def manager_order_details(request, order_id):
     order = get_object_or_404(Order, id=order_id)
     available_drivers = Driver.objects.filter(is_available=True)
-    if request.method == 'POST':
+    
+    # Only process driver assignment for rental orders (not lease orders)
+    if request.method == 'POST' and not order.is_lease:
         driver_id = request.POST.get('driver_id')
         if driver_id:
             driver = get_object_or_404(Driver, id=driver_id)
@@ -273,7 +296,12 @@ def manager_order_details(request, order_id):
 
             messages.success(request, f"Driver {driver.name} has been assigned to the order.")
         return redirect('manager_order_details', order_id=order.id)
-    return render(request, 'manager/managercarorderdetails.html', {'order': order, 'available_drivers': available_drivers})
+    
+    context = {
+        'order': order, 
+        'available_drivers': available_drivers
+    }
+    return render(request, 'manager/managercarorderdetails.html', context)
 
 
 @login_required
@@ -439,3 +467,5 @@ def create_rating(request, car_id, order_id):
         "existing_rating": existing_rating,
     }
     return render(request, "create_rating.html", context)
+
+

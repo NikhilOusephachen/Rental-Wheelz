@@ -151,10 +151,25 @@
                     <!-- Price -->
                     <div class="col-md-6 mb-3">
                         <label for="price">Price</label>
-                        <input type="number" class="form-control" id="price" name="price" value="{{ form.price.value }}" placeholder="Enter price">
-                        {% if form.price.errors %}
-                        <div class="form-error text-danger">{{ form.price.errors }}</div>
-                        {% endif %}
+                        <input type="number" class="form-control" id="price" name="price" placeholder="Enter price" required>
+                    </div>
+
+                    <!-- Lease Price -->
+                    <div class="col-md-6 mb-3">
+                        <label for="lease_price">Lease Price</label>
+                        <input type="number" class="form-control" id="lease_price" name="lease_price" placeholder="Enter lease price" required>
+                    </div>
+
+                    <!-- Minimum Lease Months -->
+                    <div class="col-md-6 mb-3">
+                        <label for="minimum_lease_months">Minimum Lease Months</label>
+                        <input type="number" class="form-control" id="minimum_lease_months" name="minimum_lease_months" placeholder="Enter minimum lease months" required>
+                    </div>
+
+                    <!-- Maximum Lease Months -->
+                    <div class="col-md-6 mb-3">
+                        <label for="maximum_lease_months">Maximum Lease Months</label>
+                        <input type="number" class="form-control" id="maximum_lease_months" name="maximum_lease_months" placeholder="Enter maximum lease months" required>
                     </div>
                 </div>
 

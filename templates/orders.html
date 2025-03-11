@@ -1,130 +1,156 @@
 {% extends 'base.html' %} 
-{% block title %} {{ car.car_name }} - Rent it! {% endblock title %} 
+{% block title %} Complete Your Order {% endblock title %} 
 {% load static %}
-<link rel="stylesheet" href="{% static 'style.css' %}" />
+
 {% block body %}
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-<form method="post" id="bookingForm"  enctype="multipart/form-data">
+<form method="post" id="orderForm" enctype="multipart/form-data">
   {% csrf_token %}
   <div class="container my-4">
-    <div class="row">
-      <!-- Left Column: Car and User Details -->
-      <div class="col-md-6">
-        <!-- User Card -->
-        <div class="card mb-4 shadow-sm" style="border-radius: 5px">
-          <div class="card-body">
-            <h5 class="card-title">User Information</h5>
-            <p class="card-text">
-              <strong>Name:</strong> {{ bill.user.first_name }} {{bill.user.last_name }}<br />
-              <strong>Email:</strong> {{ bill.user.email }}<br />
-              <strong>Phone:</strong> {{ bill.user.phone_number }}<br />
-            </p>
-          </div>
+    <!-- Terms and Conditions Section -->
+    <div class="card mb-4 shadow-sm" style="border-radius: 10px; border: none;">
+      <div class="card-header" style="background-color: #3399cc; color: white; border-radius: 10px 10px 0 0;">
+        <h4 class="mb-0">Terms and Conditions - {{ bill.is_lease|yesno:"Lease Agreement,Rental Agreement" }}</h4>
+      </div>
+      <div class="card-body">
+        <div class="terms-section" style="max-height: 400px; overflow-y: auto; padding: 20px; background-color: #f8f9fa; border-radius: 5px;">
+          {% if bill.is_lease %}
+            <h5 style="color: #2c3e50; margin-bottom: 20px;">Lease Agreement Terms</h5>
+            <ol style="padding-left: 20px;">
+              <li style="margin-bottom: 15px;">The initial payment covers only the first month's lease amount.</li>
+              <li style="margin-bottom: 15px;">Subsequent monthly payments must be made on or before the due date.</li>
+              <li style="margin-bottom: 15px;">A security deposit equivalent to one month's lease amount is required.</li>
+              <li style="margin-bottom: 15px;">The lessee is responsible for routine maintenance of the vehicle.</li>
+              <li style="margin-bottom: 15px;">The vehicle must not exceed the agreed-upon mileage limit of 2,000 km per month.</li>
+              <li style="margin-bottom: 15px;">Early termination of the lease will incur a penalty.</li>
+              <li style="margin-bottom: 15px;">The lessee must maintain valid insurance coverage throughout the lease period.</li>
+              <li style="margin-bottom: 15px;">Any damage beyond normal wear and tear will be charged to the lessee.</li>
+            </ol>
+          {% else %}
+            <h5 style="color: #2c3e50; margin-bottom: 20px;">Rental Agreement Terms</h5>
+            <ol style="padding-left: 20px;">
+              <li style="margin-bottom: 15px;">Full payment is required at the time of booking.</li>
+              <li style="margin-bottom: 15px;">A refundable security deposit will be collected.</li>
+              <li style="margin-bottom: 15px;">Cancellation within 24 hours will incur a 50% charge.</li>
+              <li style="margin-bottom: 15px;">The vehicle must be returned with the same fuel level.</li>
+              <li style="margin-bottom: 15px;">The renter is responsible for any traffic violations.</li>
+              <li style="margin-bottom: 15px;">Daily mileage limit of 200 km applies.</li>
+              <li style="margin-bottom: 15px;">Additional charges for exceeding mileage limit.</li>
+              <li style="margin-bottom: 15px;">Late returns will incur additional charges.</li>
+            </ol>
+          {% endif %}
         </div>
-
-        <!-- Car Details Card -->
-        <div class="card mb-4 shadow-sm" style="border-radius: 5px">
-          <div class="row no-gutters">
-            <div class="col-md-8">
-              <div class="card-body">
-                <h5 class="card-title">Car Information</h5>
-                <p class="card-text">
-                  <strong>Car Name:</strong> {{ bill.car.car_name }}<br />
-                  <strong>Car Model:</strong> {{ bill.car.car_model.model_name}}<br />
-                  <strong>Color:</strong> {{ bill.car.car_color.color }}<br />
-                  <strong>Fuel Type:</strong> {{ bill.car.car_fuel.fuel }}<br />
-                </p>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <img
-                src="{{ bill.car.image.url }}"
-                class="card-img"
-                alt="{{ bill.car.car_name }}"
-                style="height: 100%; object-fit: cover"
-              />
-            </div>
-          </div>
+        <div class="form-check mt-4" style="padding: 20px; background-color: #e9ecef; border-radius: 5px;">
+          <input class="form-check-input" type="checkbox" id="agreeTerms" required>
+          <label class="form-check-label" for="agreeTerms" style="font-weight: 500;">
+            I have read and agree to the terms and conditions
+          </label>
         </div>
       </div>
+    </div>
 
-      <!-- Right Column: Booking Form -->
-      <div class="col-md-6">
-        <div class="card mb-4 shadow-sm" style="border-radius: 5px">
-          <div class="card-body">
-            <h5 class="card-title text-center">Booking Details</h5>
-
-            <!-- Booking Form Fields -->
+    <!-- Delivery Details Section -->
+    <div class="card mb-4 shadow-sm" style="border-radius: 10px; border: none;">
+      <div class="card-header" style="background-color: #3399cc; color: white; border-radius: 10px 10px 0 0;">
+        <h4 class="mb-0">Delivery Details</h4>
+      </div>
+      <div class="card-body" style="padding: 30px;">
+        <div class="row">
+          <!-- Address Form -->
+          <div class="col-md-6">
             <div class="form-group">
-              <label for="address">Address:</label>
-              <input
-                type="text"
+              <label for="address" style="font-weight: 500; color: #2c3e50; margin-bottom: 10px;">Delivery Address:</label>
+              <textarea
                 class="form-control"
                 id="address"
                 name="address"
+                rows="4"
                 required
-              />
-            </div>
-
-            <!-- Driving License Upload -->
-             {% if request.user.driving_licence %}
-              <input
-                type="file"
-                class="form-control-file"
-                id="driving_license"
-                name="driving_license"
-                accept=".pdf,image/*"
-                value= "{{request.user.driving_licence}}"
-                hidden
-              />
-              <p> You Already Uploaded the Driving License </p>
-             {% else %}
-            <div class="form-group">
-              <label for="driving_license">Upload Driving License:</label>
-              <input
-                type="file"
-                class="form-control-file"
-                id="driving_license"
-                name="driving_license"
-                accept=".pdf,image/*"
-                required
-              />
-            </div>
-            {% endif %}
-            <input type="hidden" id="razorpay_payment_id" name="razorpay_payment_id" />
-            <input type="hidden" id="razorpay_order_id" name="razorpay_order_id" />
-            <input type="hidden" id="razorpay_signature" name="razorpay_signature" />
-
-            <!-- Submit Button -->
-            <div class="text-center">
-              <button class="btn btn-primary" type="button" id="payButton">
-                Proceed to Payment
-              </button>
+                style="border-radius: 5px; border: 1px solid #ced4da;"
+              ></textarea>
             </div>
           </div>
+
+          <!-- Driving License Upload -->
+          <div class="col-md-6">
+            {% if request.user.driving_licence %}
+              <div class="alert alert-info" style="border-radius: 5px;">
+                <i class="fas fa-check-circle"></i> Driving License already uploaded
+              </div>
+              <input
+                type="file"
+                class="form-control-file"
+                id="driving_license"
+                name="driving_license"
+                accept=".pdf,image/*"
+                value="{{ request.user.driving_licence }}"
+                hidden
+              />
+            {% else %}
+            <div class="form-group">
+              <label for="driving_license" style="font-weight: 500; color: #2c3e50; margin-bottom: 10px;">Upload Driving License:</label>
+              <input
+                type="file"
+                class="form-control-file"
+                id="driving_license"
+                name="driving_license"
+                accept=".pdf,image/*"
+                required
+                style="border: 1px solid #ced4da; padding: 10px; border-radius: 5px; width: 100%;"
+              />
+              <small class="form-text text-muted" style="margin-top: 10px;">Accepted formats: PDF, JPG, PNG</small>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Hidden Razorpay Fields -->
+        <input type="hidden" id="razorpay_payment_id" name="razorpay_payment_id" />
+        <input type="hidden" id="razorpay_order_id" name="razorpay_order_id" />
+        <input type="hidden" id="razorpay_signature" name="razorpay_signature" />
+
+        <!-- Payment Button -->
+        <div class="text-center mt-4">
+          <button 
+            class="btn btn-primary btn-lg" 
+            type="button" 
+            id="payButton" 
+            disabled
+            style="padding: 12px 40px; font-size: 18px; border-radius: 5px; background-color: #28a745; border: none; transition: all 0.3s ease;"
+          >
+            Proceed to Payment
+          </button>
         </div>
       </div>
     </div>
   </div>
 </form>
-<script type="text/javascript">
+
+<script>
+  // Enable/disable payment button based on terms agreement
+  document.getElementById('agreeTerms').addEventListener('change', function() {
+    const payButton = document.getElementById('payButton');
+    payButton.disabled = !this.checked;
+    payButton.style.backgroundColor = this.checked ? '#28a745' : '#6c757d';
+    payButton.style.cursor = this.checked ? 'pointer' : 'not-allowed';
+  });
+
+  // Razorpay payment handling
   document.getElementById("payButton").onclick = function (e) {
     e.preventDefault();
 
     var options = {
-      key: "{{ razorpay_key }}", // Razorpay Key ID
-      amount: "{{ amount }}", // Amount in paise (100 paise = 1 INR)
+      key: "{{ razorpay_key }}",
+      amount: "{{ amount }}",
       currency: "INR",
       name: "{{ bill.user.username }}",
-      description: "Car Rental Payment",
-      
-      order_id: "{{ razorpay_order_id }}", // This would be generated from the server
+      description: "{{ bill.is_lease|yesno:'First Month Lease Payment,Full Rental Payment' }}",
+      order_id: "{{ razorpay_order_id }}",
       handler: function (response) {
         document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;
         document.getElementById('razorpay_order_id').value = response.razorpay_order_id;
         document.getElementById('razorpay_signature').value = response.razorpay_signature;
-        // After successful payment, set payment details in a hidden input and submit the form
-        document.getElementById('bookingForm').submit();
+        document.getElementById('orderForm').submit();
       },
       prefill: {
         name: "{{ bill.user.username}}",
@@ -140,4 +166,4 @@
     rzp1.open();
   };
 </script>
-{% endblock body %}
+{% endblock %}

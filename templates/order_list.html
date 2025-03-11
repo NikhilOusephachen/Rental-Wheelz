@@ -11,46 +11,64 @@
   {% include 'messages.html' %}
   <h2 class="text-center mb-4">My Orders</h2>
 
+  <!-- Order Type Filter -->
+  <div class="mb-4 text-center">
+    <div class="btn-group" role="group">
+      <button type="button" class="btn btn-outline-primary active" onclick="filterOrders('all')">All Orders</button>
+      <button type="button" class="btn btn-outline-primary" onclick="filterOrders('rent')">Rental Orders</button>
+      <button type="button" class="btn btn-outline-primary" onclick="filterOrders('lease')">Lease Orders</button>
+    </div>
+  </div>
+
   <!-- Orders Table -->
   <div class="table-responsive">
     <table class="table table-striped table-bordered">
       <thead class="thead-dark">
         <tr>
           <th>Order ID</th>
+          <th>Type</th>
           <th>Car Name</th>
           <th>Car Model</th>
-          <th>PickUp Date</th>
-          <th>Rent End Date</th>
-          <th>Total Rent</th>
+          <th>Start Date</th>
+          <th>End Date</th>
+          <th>Total Amount</th>
           <th>Status</th>
           <th>Actions</th>
         </tr>
       </thead>
       <tbody>
         {% for order in orders %}
-        <tr>
+        <tr class="order-row {% if order.is_lease %}lease-order{% else %}rental-order{% endif %}">
           <td>{{ forloop.counter }}</td>
+          <td>
+            <span class="badge {% if order.is_lease %}badge-info{% else %}badge-primary{% endif %}">
+              {{ order.is_lease|yesno:"Lease,Rental" }}
+            </span>
+          </td>
           <td>{{ order.car.car_name }}</td>
           <td>{{ order.car.car_model.model_name }}</td>
           <td>{{ order.bill.pick_up_date }}</td>
-          <td>{{ order.bill.rent_end_date }}</td>
+          <td>
+            {% if order.is_lease %}
+              {{ order.bill.rent_end_date }}
+            {% else %}
+              {{ order.bill.rent_end_date }}
+            {% endif %}
+          </td>
           <td>₹{{ order.bill.total_rent }}</td>
-          {% if order.is_approved %}
-          <td>Approved</td>
-          {% else %}
-          <td>Not Approved</td>
-          {% endif %}
+          <td>
+            <span class="badge {% if order.is_approved %}badge-success{% else %}badge-warning{% endif %}">
+              {{ order.is_approved|yesno:"Approved,Pending" }}
+            </span>
+          </td>
           <td>
             {% if not order.payment_status %}
-            <!-- Repayment Button -->
-            <form method="post" id="payment-form">
+            <form method="post" id="payment-form-{{ order.id }}">
               {% csrf_token %}
               <input type="hidden" name="order_id" value="{{ order.id }}" />
               <input type="hidden" name="bill_id" value="{{ order.bill.id }}" />
-              <input type="hidden" id="razorpay_order_id" name="razorpay_order_id" value="{{ razorpay_order_id }}" />
-              <input type="hidden" id="razorpay_key" name="razorpay_key" value="{{ razorpay_key }}" />
-              <input type="hidden" id="amount_in_paise" name="amount" value="{{ order.bill.total_rent|multiply:100 }}" />
-              <button type="button" class="btn btn-warning btn-sm" id="repayment-button">
+              <button type="button" class="btn btn-warning btn-sm" 
+                      onclick="initiatePayment('{{ order.id }}', {{ order.bill.total_rent|multiply:100 }})">
                 Repayment
               </button>
             </form>
@@ -61,61 +79,57 @@
         </tr>
         {% empty %}
         <tr>
-          <td colspan="8" class="text-center">No orders found</td>
+          <td colspan="9" class="text-center">No orders found</td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
-
-  <!-- Razorpay Payment Script -->
-  <!-- {% if razorpay_order_id %} -->
-  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-  <script>
-    var options = {
-      key: "{{ razorpay_key }}", // Your Razorpay key
-      amount: "{{ order.bill.total_rent|multiply:100 }}", // Amount in paise
-      currency: "INR",
-      name: "{{order.user.username}}",
-      description: "Payment for Order ID: {{ order.id }}",
-      order_id: "{{ razorpay_order_id }}", // Razorpay Order ID
-      handler: function (response) {
-        // Get the response and submit form data
-        var form = document.getElementById('payment-form');
-
-        var paymentIdInput = document.createElement('input');
-        paymentIdInput.setAttribute('type', 'hidden');
-        paymentIdInput.setAttribute('name', 'razorpay_payment_id');
-        paymentIdInput.setAttribute('value', response.razorpay_payment_id);
-        form.appendChild(paymentIdInput);
-
-        var orderIdInput = document.createElement('input');
-        orderIdInput.setAttribute('type', 'hidden');
-        orderIdInput.setAttribute('name', 'razorpay_order_id');
-        orderIdInput.setAttribute('value', response.razorpay_order_id);
-        form.appendChild(orderIdInput);
-
-        var signatureInput = document.createElement('input');
-        signatureInput.setAttribute('type', 'hidden');
-        signatureInput.setAttribute('name', 'razorpay_signature');
-        signatureInput.setAttribute('value', response.razorpay_signature);
-        form.appendChild(signatureInput);
-
-        form.submit(); // Submit the form with Razorpay payment details
-      },
-      theme: {
-        color: "#F37254"
-      }
-    };
-    
-    var rzp1 = new Razorpay(options);
-
-    // Trigger the Razorpay checkout when the "Repayment" button is clicked
-    document.getElementById('repayment-button').onclick = function(e) {
-      rzp1.open();
-      e.preventDefault();
-    };
-  </script>
-  <!-- {% endif %} -->
 </div>
+
+<script>
+function filterOrders(type) {
+  const rows = document.querySelectorAll('.order-row');
+  rows.forEach(row => {
+    if (type === 'all') {
+      row.style.display = '';
+    } else if (type === 'lease') {
+      row.style.display = row.classList.contains('lease-order') ? '' : 'none';
+    } else {
+      row.style.display = row.classList.contains('rental-order') ? '' : 'none';
+    }
+  });
+
+  // Update active button
+  document.querySelectorAll('.btn-group .btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  event.target.classList.add('active');
+}
+
+function initiatePayment(orderId, amount) {
+  var options = {
+    key: "{{ razorpay_key }}",
+    amount: amount,
+    currency: "INR",
+    name: "Car Rental Service",
+    description: "Payment for Order #" + orderId,
+    handler: function (response) {
+      document.getElementById('payment-form-' + orderId).submit();
+    }
+  };
+  var rzp = new Razorpay(options);
+  rzp.open();
+}
+</script>
+
+<style>
+.badge {
+  padding: 8px 12px;
+  font-size: 0.9em;
+}
+.btn-group .btn {
+  min-width: 120px;
+}
+</style>
 {% endblock body %}

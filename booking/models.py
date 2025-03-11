@@ -14,10 +14,17 @@ class Bill(models.Model):
     total_rent = models.DecimalField(
         max_digits=10, decimal_places=2, default=0.00)
     rent_end_date = models.DateField(null=True, blank=True)
+    is_lease = models.BooleanField(default=False)
+    no_of_months = models.PositiveIntegerField(default=0)
+    lease_start_date = models.DateField(null=True, blank=True)
+    lease_end_date = models.DateField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
-        if self.car and self.no_of_days:
-            self.total_rent = self.car.price * self.no_of_days
+        if self.car and (self.no_of_days or self.no_of_months):
+            if self.is_lease:
+                self.total_rent = self.car.lease_price * self.no_of_months
+            else:
+                self.total_rent = self.car.price * self.no_of_days
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -36,6 +43,11 @@ class Order(models.Model):
     bill = models.ForeignKey(Bill, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     is_assigned = models.BooleanField(default=False)
+    is_lease = models.BooleanField(default=False)
+    lease_terms_accepted = models.BooleanField(default=False)
+    advance_paid = models.BooleanField(default=False)
+    remaining_months = models.IntegerField(default=0)
+    next_payment_date = models.DateField(null=True, blank=True)
 
     def __str__(self):
         return f"Order for {self.car} by {self.user} from {self.bill}"

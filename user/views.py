@@ -187,29 +187,92 @@ def manager_car_view(request, id):
 def manager_car_add(request):
     if request.method == "POST":
         form = CarForm(request.POST, request.FILES)
-        print(form.errors)
         if form.is_valid():
-            print("hi")
-            form.save()
+            # Save the form but don't commit to database yet
+            car = form.save(commit=False)
+            
+            # Get lease details from the form and convert to appropriate types
+            lease_price = request.POST.get('lease_price')
+            min_months = request.POST.get('minimum_lease_months')
+            max_months = request.POST.get('maximum_lease_months')
+            
+            # Ensure values are not empty and convert to appropriate types
+            if lease_price and lease_price.strip():
+                car.lease_price = float(lease_price)
+                # If lease price is provided, set is_available_for_lease to True
+                if float(lease_price) > 0:
+                    car.is_available_for_lease = True
+            
+            if min_months and min_months.strip():
+                car.minimum_lease_months = int(min_months)
+                
+            if max_months and max_months.strip():
+                car.maximum_lease_months = int(max_months)
+            
+            # Now save the car with all details
+            car.save()
+            
             messages.success(request, "Car added successfully!")
-            # Redirect to the dashboard
             return redirect("manager_car_management")
+        else:
+            print(form.errors)
+            messages.error(request, "Please correct the errors below.")
     else:
         form = CarForm()
-    return render(request, "manager/add_car.html", {"form": form})
+    
+    # Get all necessary data for the form
+    brands = Brand.objects.all()
+    models = CarModel.objects.all()
+    colors = CarColor.objects.all()
+    
+    return render(request, "manager/add_car.html", {
+        "form": form,
+        "brands": brands,
+        "models": models,
+        "colors": colors
+    })
 
 
 class ManagerCarEdit(UpdateView):
     model = Car
     form_class = CarForm
     template_name = "manager/managercaredit.html"
-    # Redirect after successfully updating
     success_url = reverse_lazy("manager_car_management")
 
     def form_valid(self, form):
+        # Get the car instance but don't save yet
+        car = form.save(commit=False)
+        
+        # Update lease details
+        lease_price = self.request.POST.get('lease_price')
+        min_months = self.request.POST.get('minimum_lease_months')
+        max_months = self.request.POST.get('maximum_lease_months')
+        
+        # Ensure values are not empty and convert to appropriate types
+        if lease_price and lease_price.strip():
+            car.lease_price = float(lease_price)
+            # If lease price is provided, set is_available_for_lease to True
+            if float(lease_price) > 0:
+                car.is_available_for_lease = True
+        
+        if min_months and min_months.strip():
+            car.minimum_lease_months = int(min_months)
+            
+        if max_months and max_months.strip():
+            car.maximum_lease_months = int(max_months)
+        
+        # Now save the car
+        car.save()
+        
         messages.success(self.request, "Car details updated successfully!")
         return super().form_valid(form)
-
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['brands'] = Brand.objects.all()
+        context['models'] = CarModel.objects.all()
+        context['colors'] = CarColor.objects.all()
+        return context
 
 def car_delete(request, car_id):
     if request.method == "POST":

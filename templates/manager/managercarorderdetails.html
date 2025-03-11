@@ -30,8 +30,13 @@ Order Details - {{ order.car.car_name }}
             <p><strong>Car Name:</strong> {{ order.car.car_name }}</p>
             <p><strong>Car Model:</strong> {{ order.car.car_model.model_name }}</p>
             <p><strong>Pickup Date:</strong> {{ order.bill.pick_up_date }}</p>
-            <p><strong>Rent End Date:</strong> {{ order.bill.rent_end_date }}</p>
-            <p><strong>Total Rent:</strong> ₹{{ order.bill.total_rent }}</p>
+            {% if order.is_lease %}
+                <p><strong>Lease End Date:</strong> {{ order.bill.rent_end_date }}</p>
+                <p><strong>Monthly Rate:</strong> ₹{{ order.car.lease_price }}</p>
+            {% else %}
+                <p><strong>Rent End Date:</strong> {{ order.bill.rent_end_date }}</p>
+                <p><strong>Total Rent:</strong> ₹{{ order.bill.total_rent }}</p>
+            {% endif %}
             <p><strong>From Location:</strong> {{ order.bill.from_loc }}</p>
             <p><strong>To Location:</strong> {{ order.bill.to_loc }}</p>
             <p><strong>Address:</strong> {{ order.address }}</p>
@@ -43,6 +48,7 @@ Order Details - {{ order.car.car_name }}
         <div class="car-image-container">
             <img src="{{ order.car.image.url }}" class="img-fluid mb-4" alt="{{ order.car.car_name }}">
             
+            {% if not order.is_lease %}
             <div class="driver-assignment">
                 <h5>Driver Assignment</h5>
                 <div class="alert alert-info">
@@ -77,6 +83,7 @@ Order Details - {{ order.car.car_name }}
                     </button>
                 </form>
             </div>
+            {% endif %}
             
         </div>
     </div>
