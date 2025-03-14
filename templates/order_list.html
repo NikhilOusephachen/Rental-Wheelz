@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %} My Orders {% endblock title %}
+{% block title %}My Orders{% endblock title %}
 
 {% load static %}
 {% load custom_filters %}
@@ -7,85 +7,178 @@
 <link rel="stylesheet" href="{% static 'style.css' %}" />
 
 {% block body %}
-<div class="container my-5">
+<!-- Hero Section -->
+<section class="hero-section text-center text-white py-3" 
+         style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);">
+  <div class="container">
+    <h2 class="mb-2">My Orders</h2>
+    <p class="lead mb-0">Track and manage your rentals and leases</p>
+  </div>
+</section>
+
+<div class="container py-4">
   {% include 'messages.html' %}
-  <h2 class="text-center mb-4">My Orders</h2>
 
   <!-- Order Type Filter -->
-  <div class="mb-4 text-center">
-    <div class="btn-group" role="group">
-      <button type="button" class="btn btn-outline-primary active" onclick="filterOrders('all')">All Orders</button>
-      <button type="button" class="btn btn-outline-primary" onclick="filterOrders('rent')">Rental Orders</button>
-      <button type="button" class="btn btn-outline-primary" onclick="filterOrders('lease')">Lease Orders</button>
+  <div class="card shadow-sm mb-4">
+    <div class="card-body text-center py-3">
+      <div class="btn-group" role="group">
+        <button type="button" class="btn btn-outline-primary active" onclick="filterOrders('all')">
+          <i class="fas fa-list"></i> All Orders
+        </button>
+        <button type="button" class="btn btn-outline-primary" onclick="filterOrders('rent')">
+          <i class="fas fa-car"></i> Rentals
+        </button>
+        <button type="button" class="btn btn-outline-primary" onclick="filterOrders('lease')">
+          <i class="fas fa-handshake"></i> Leases
+        </button>
+      </div>
     </div>
   </div>
 
-  <!-- Orders Table -->
-  <div class="table-responsive">
-    <table class="table table-striped table-bordered">
-      <thead class="thead-dark">
-        <tr>
-          <th>Order ID</th>
-          <th>Type</th>
-          <th>Car Name</th>
-          <th>Car Model</th>
-          <th>Start Date</th>
-          <th>End Date</th>
-          <th>Total Amount</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for order in orders %}
-        <tr class="order-row {% if order.is_lease %}lease-order{% else %}rental-order{% endif %}">
-          <td>{{ forloop.counter }}</td>
-          <td>
-            <span class="badge {% if order.is_lease %}badge-info{% else %}badge-primary{% endif %}">
-              {{ order.is_lease|yesno:"Lease,Rental" }}
-            </span>
-          </td>
-          <td>{{ order.car.car_name }}</td>
-          <td>{{ order.car.car_model.model_name }}</td>
-          <td>{{ order.bill.pick_up_date }}</td>
-          <td>
-            {% if order.is_lease %}
-              {{ order.bill.rent_end_date }}
-            {% else %}
-              {{ order.bill.rent_end_date }}
-            {% endif %}
-          </td>
-          <td>₹{{ order.bill.total_rent }}</td>
-          <td>
-            <span class="badge {% if order.is_approved %}badge-success{% else %}badge-warning{% endif %}">
-              {{ order.is_approved|yesno:"Approved,Pending" }}
-            </span>
-          </td>
-          <td>
-            {% if not order.payment_status %}
-            <form method="post" id="payment-form-{{ order.id }}">
-              {% csrf_token %}
-              <input type="hidden" name="order_id" value="{{ order.id }}" />
-              <input type="hidden" name="bill_id" value="{{ order.bill.id }}" />
-              <button type="button" class="btn btn-warning btn-sm" 
-                      onclick="initiatePayment('{{ order.id }}', {{ order.bill.total_rent|multiply:100 }})">
-                Repayment
-              </button>
-            </form>
-            {% else %}
-            <a href="{% url 'order_detail' order.id %}" class="btn btn-info btn-sm">View</a>
-            {% endif %}
-          </td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="9" class="text-center">No orders found</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  <!-- Orders List -->
+  <div class="card shadow-sm">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead class="bg-light">
+            <tr>
+              <th class="px-4">Order ID</th>
+              <th>Type</th>
+              <th>Vehicle Details</th>
+              <th>Duration</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th class="text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for order in orders %}
+            <tr class="order-row {% if order.is_lease %}lease-order{% else %}rental-order{% endif %}">
+              <td class="px-4">#{{ forloop.counter }}</td>
+              <td>
+                <span class="badge {% if order.is_lease %}bg-info{% else %}bg-primary{% endif %} rounded-pill">
+                  {{ order.is_lease|yesno:"Lease,Rental" }}
+                </span>
+              </td>
+              <td>
+                <div class="d-flex align-items-center">
+                  <div>
+                    <div class="fw-bold">{{ order.car.car_name }}</div>
+                    <small class="text-muted">{{ order.car.car_model.model_name }}</small>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="small">
+                  <div><i class="fas fa-calendar-alt text-muted"></i> {{ order.bill.pick_up_date }}</div>
+                  <div><i class="fas fa-calendar-check text-muted"></i> {{ order.bill.rent_end_date }}</div>
+                </div>
+              </td>
+              <td>
+                <span class="fw-bold text-primary">₹{{ order.bill.total_rent }}</span>
+              </td>
+              <td>
+                <span class="badge {% if order.is_approved %}bg-success{% else %}bg-warning{% endif %} rounded-pill">
+                  {% if order.is_approved %}
+                    <i class="fas fa-check-circle"></i> Approved
+                  {% else %}
+                    <i class="fas fa-clock"></i> Pending
+                  {% endif %}
+                </span>
+              </td>
+              <td class="text-center">
+                {% if not order.payment_status %}
+                <form method="post" id="payment-form-{{ order.id }}" class="d-inline">
+                  {% csrf_token %}
+                  <input type="hidden" name="order_id" value="{{ order.id }}" />
+                  <input type="hidden" name="bill_id" value="{{ order.bill.id }}" />
+                  <button type="button" class="btn btn-warning btn-sm" 
+                   onclick="initiatePayment('{{ order.id }}', '{{ order.bill.total_rent|multiply:100 }}')">
+                    <i class="fas fa-credit-card"></i> Pay Now
+                  </button>
+                </form>
+                {% else %}
+                <a href="{% url 'order_detail' order.id %}" class="btn btn-info btn-sm">
+                  <i class="fas fa-eye"></i> View
+                </a>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="7" class="text-center py-4">
+                <div class="text-muted">
+                  <i class="fas fa-shopping-cart fa-2x mb-3"></i>
+                  <p class="mb-0">No orders found</p>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>
+
+<style>
+.hero-section {
+  margin-bottom: 2rem;
+}
+
+.btn-group .btn {
+  min-width: 120px;
+  padding: 0.5rem 1rem;
+}
+
+.btn-group .btn i {
+  margin-right: 0.5rem;
+}
+
+.table {
+  margin-bottom: 0;
+}
+
+.table th {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  color: #495057;
+}
+
+.table td {
+  vertical-align: middle;
+  padding: 1rem 0.75rem;
+}
+
+.badge {
+  padding: 0.5rem 0.75rem;
+  font-weight: 500;
+}
+
+.btn {
+  transition: all 0.3s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.card {
+  border: none;
+  border-radius: 0.5rem;
+}
+
+.fw-bold {
+  font-weight: 600 !important;
+}
+
+.text-primary {
+  color: #1e3c72 !important;
+}
+</style>
 
 <script>
 function filterOrders(type) {
@@ -123,13 +216,4 @@ function initiatePayment(orderId, amount) {
 }
 </script>
 
-<style>
-.badge {
-  padding: 8px 12px;
-  font-size: 0.9em;
-}
-.btn-group .btn {
-  min-width: 120px;
-}
-</style>
 {% endblock body %}

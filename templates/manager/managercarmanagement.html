@@ -72,7 +72,7 @@
                         <button type="submit" class="btn btn-delete btn-sm" onclick="return confirm('Are you sure you want to delete this car?');">Delete</button>
                     </form>
 
-                    <a href="{% url 'manager_predictive_maintenance' car.id %}" class="btn btn-info btn-sm">
+                    <a href="{% url 'manager_predictive_maintenance' car.id %}" class="btn btn-info btn-sm" id="predict-maintenance-button">
                         Predict Maintenance
                     </a>
                 </td>

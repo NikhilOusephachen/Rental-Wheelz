@@ -75,9 +75,21 @@
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-3">
               <h3 class="card-title mb-0">{{ car.car_name }}</h3>
-              <span class="badge {% if car.available %}bg-success{% else %}bg-danger{% endif %}">
-                {{ car.available|yesno:"Available,Not Available" }}
-              </span>
+              <div class="car-availability mb-3">
+                {% if start_date and end_date %}
+                    <div class="badge {% if is_available %}bg-success{% else %}bg-danger{% endif %} p-2">
+                        {% if is_available %}
+                            Available for Selected Dates
+                        {% else %}
+                            Not Available for Selected Dates
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div class="badge {% if car.available %}bg-success{% else %}bg-danger{% endif %} p-2">
+                        {{ car.available|yesno:"Available,Not Available" }}
+                    </div>
+                {% endif %}
+              </div>
             </div>
 
             <p class="text-muted mb-4">{{ car.car_desc }}</p>
@@ -156,18 +168,43 @@
               {% endif %}
             </div>
 
-            <!-- Action Button -->
-            {% if request.GET.type == 'lease' %}
-              <a href="{% url 'bill' car.id %}?type=lease" 
-                 class="btn btn-primary w-100 {% if not car.available %}disabled{% endif %}">
-                <i class="fas fa-handshake"></i> Lease Now
-              </a>
-            {% else %}
-              <a href="{% url 'bill' car.id %}" 
-                 class="btn btn-primary w-100 {% if not car.available %}disabled{% endif %}">
-                <i class="fas fa-key"></i> Rent Now
-              </a>
-            {% endif %}
+            <!-- Booking Actions -->
+            <div class="booking-actions mt-4">
+              {% if start_date and end_date %}
+                  {% if is_available %}
+                      <a href="{% url 'bill' car.id %}?start_date={{ start_date }}&end_date={{ end_date }}" 
+                         class="btn btn-primary btn-lg w-100 mb-2">
+                          <i class="fas fa-car"></i> Rent Now
+                      </a>
+                      {% if car.is_available_for_lease %}
+                          <a href="{% url 'bill' car.id %}?type=lease&start_date={{ start_date }}&end_date={{ end_date }}" 
+                             class="btn btn-outline-primary btn-lg w-100">
+                              <i class="fas fa-clock"></i> Lease
+                          </a>
+                      {% endif %}
+                  {% else %}
+                      <button class="btn btn-secondary btn-lg w-100" disabled>
+                          <i class="fas fa-ban"></i> Not Available for Selected Dates
+                      </button>
+                  {% endif %}
+              {% else %}
+                  {% if car.available %}
+                      <a href="{% url 'bill' car.id %}" class="btn btn-primary btn-lg w-100 mb-2">
+                          <i class="fas fa-car"></i> Rent Now
+                      </a>
+                      {% if car.is_available_for_lease %}
+                          <a href="{% url 'bill' car.id %}?type=lease" 
+                             class="btn btn-outline-primary btn-lg w-100">
+                              <i class="fas fa-clock"></i> Lease
+                          </a>
+                      {% endif %}
+                  {% else %}
+                      <button class="btn btn-secondary btn-lg w-100" disabled>
+                          <i class="fas fa-ban"></i> Not Available
+                      </button>
+                  {% endif %}
+              {% endif %}
+            </div>
           </div>
         </div>
       </div>

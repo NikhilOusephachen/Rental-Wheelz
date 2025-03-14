@@ -16,8 +16,8 @@
         Discover Your Perfect Drive - Premium Cars at Exceptional Rates
       </p>
 
-      <!-- Enhanced Search Bar -->
-      <div class="search-container mx-auto" style="max-width: 600px;">
+      <!-- Search Bar -->
+      <div class="search-container mx-auto mb-4" style="max-width: 600px;">
         <form method="GET" action="" class="search-form">
           <div class="input-group">
             <input type="text" name="search" class="form-control form-control-lg"
@@ -33,6 +33,54 @@
           </div>
         </form>
       </div>
+
+      <!-- Update the availability check section in the hero section -->
+      <div class="availability-section mt-4">
+          <form method="GET" action="" id="availabilityForm">
+              <!-- Preserve existing search parameters -->
+              {% if request.GET.search %}<input type="hidden" name="search" value="{{ request.GET.search }}">{% endif %}
+              {% if request.GET.sort %}<input type="hidden" name="sort" value="{{ request.GET.sort }}">{% endif %}
+              
+              <div class="row justify-content-center align-items-end g-3">
+                  <div class="col-md-4">
+                      <div class="date-input-group">
+                          <label class="text-white mb-2">
+                              <i class="fas fa-calendar-alt me-2"></i>Pick-up Date
+                          </label>
+                          <input type="date" 
+                                 class="form-control form-control-lg" 
+                                 id="start_date" 
+                                 name="start_date"
+                                 value="{{ start_date|date:'Y-m-d' }}" 
+                                 min="{{ today_date|date:'Y-m-d' }}">
+                      </div>
+                  </div>
+                  <div class="col-md-4">
+                      <div class="date-input-group">
+                          <label class="text-white mb-2">
+                              <i class="fas fa-calendar-alt me-2"></i>Return Date
+                          </label>
+                          <input type="date" 
+                                 class="form-control form-control-lg" 
+                                 id="end_date" 
+                                 name="end_date"
+                                 value="{{ end_date|date:'Y-m-d' }}" 
+                                 min="{{ today_date|date:'Y-m-d' }}">
+                      </div>
+                  </div>
+                  <div class="col-md-4 d-flex gap-2">
+                      <button type="submit" class="btn btn-light btn-lg flex-grow-1">
+                          <i class="fas fa-search me-2"></i>Check Availability
+                      </button>
+                      {% if start_date or end_date %}
+                      <button type="button" class="btn btn-outline-light btn-lg" onclick="clearDates()">
+                          <i class="fas fa-times"></i>
+                      </button>
+                      {% endif %}
+                  </div>
+              </div>
+          </form>
+      </div>
     </div>
   </section>
 
@@ -45,8 +93,8 @@
             <div class="card-body p-2">
               <select class="form-control border-0" name="sort" id="sort">
                 <option value="">Sort By</option>
-                <option value="price">Price: Low to High</option>
-                <option value="-price">Price: High to Low</option>
+                <option value="price" {% if request.GET.sort == 'price' %}selected{% endif %}>Price: Low to High</option>
+                <option value="-price" {% if request.GET.sort == '-price' %}selected{% endif %}>Price: High to Low</option>
               </select>
             </div>
           </div>
@@ -116,48 +164,59 @@
         </div>
       {% else %}
         <div class="row">
-          {% for i in cars %}
+          {% for car in cars %}
             <div class="col-lg-4 col-md-6 mb-4">
-              <div class="card car-card h-100 shadow-sm hover-shadow transition-all">
-                <div class="position-relative">
-                  <img src="/media/{{ i.image }}" 
-                       class="card-img-top" 
-                       alt="{{ i.car_name }}"
-                       style="height: 200px; object-fit: cover;">
-                  {% if not i.available %}
-                    <div class="unavailable-badge position-absolute top-0 end-0 m-2">
-                      <span class="badge bg-danger">Unavailable</span>
-                    </div>
-                  {% endif %}
-                </div>
+              <div class="card car-card h-100 shadow-sm">
+                <img src="/media/{{ car.image }}" 
+                     class="card-img-top" 
+                     alt="{{ car.car_name }}"
+                     style="height: 200px; object-fit: cover;">
                 <div class="card-body">
-                  <h5 class="card-title font-weight-bold mb-2">{{ i.car_name }}</h5>
-                  <p class="card-text text-muted mb-3">{{ i.car_desc }}</p>
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="card-title mb-0">{{ car.car_name }}</h5>
+                    {% if start_date and end_date %}
+                      <span class="badge {% if car.is_available_for_period %}bg-success{% else %}bg-danger{% endif %} ms-2">
+                        {% if car.is_available_for_period %}Available{% else %}Not Available{% endif %}
+                      </span>
+                    {% else %}
+                      <span class="badge bg-warning ms-2">Select Dates</span>
+                    {% endif %}
+                  </div>
+                  <p class="card-text text-muted mb-2">{{ car.car_desc|truncatechars:100 }}</p>
                   <div class="d-flex justify-content-between align-items-center mb-3">
                     <div class="price-tag">
-                      <span class="h5 text-primary mb-0">₹{{ i.price }}</span>
-                      <small class="text-muted">/day</small>
+                      <strong>₹{{ car.price }}</strong>/day
                     </div>
                     <div class="car-features">
                       <span class="badge bg-light text-dark me-1">
-                        <i class="fas fa-gas-pump"></i> {{ i.fuel_type }}
+                        <i class="fas fa-gas-pump"></i> {{ car.car_fuel }}
                       </span>
                     </div>
                   </div>
-                  <div class="d-grid gap-2">
-                    <a href="{% url 'car_detail' i.id %}" 
-                       class="btn btn-primary {% if not i.available %}disabled{% endif %}">
-                      {% if i.available %}
-                        <i class="fas fa-key"></i> Rent Now
+                  <div class="d-flex gap-2">
+                    {% if start_date and end_date %}
+                      {% if car.is_available_for_period %}
+                        <a href="{% url 'car_detail' car.id %}?start_date={{ start_date|date:'Y-m-d' }}&end_date={{ end_date|date:'Y-m-d' }}" 
+                           class="btn btn-primary">
+                          <i class="fas fa-key"></i> Rent Now
+                        </a>
+                        {% if car.is_available_for_lease %}
+                          <a href="{% url 'car_detail' car.id %}?start_date={{ start_date|date:'Y-m-d' }}&end_date={{ end_date|date:'Y-m-d' }}&type=lease" 
+                             class="btn btn-outline-primary">
+                            <i class="fas fa-clock"></i> Lease
+                          </a>
+                        {% endif %}
                       {% else %}
-                        <i class="fas fa-ban"></i> Unavailable
+                        <button class="btn btn-secondary w-100" disabled>
+                          <i class="fas fa-ban me-1"></i> Not Available
+                        </button>
                       {% endif %}
-                    </a>
-                    {% if i.is_available_for_lease %}
-                      <a href="{% url 'car_detail' i.id %}?type=lease" 
-                         class="btn btn-outline-primary {% if not i.available %}disabled{% endif %}">
-                        <i class="fas fa-clock"></i> Lease
-                      </a>
+                    {% else %}
+                      <button type="button" 
+                              class="btn btn-warning w-100" 
+                              onclick="scrollToDateSelection()">
+                        <i class="fas fa-calendar-alt me-1"></i> Select Dates First
+                      </button>
                     {% endif %}
                   </div>
                 </div>
@@ -173,7 +232,7 @@
           <ul class="pagination justify-content-center">
             {% if cars.has_previous %}
               <li class="page-item">
-                <a class="page-link" href="?page={{ cars.previous_page_number }}" aria-label="Previous">
+                <a class="page-link" href="?page={{ cars.previous_page_number }}{% if request.GET.start_date %}&start_date={{ start_date|date:'Y-m-d' }}{% endif %}{% if request.GET.end_date %}&end_date={{ end_date|date:'Y-m-d' }}{% endif %}" aria-label="Previous">
                   <i class="fas fa-chevron-left"></i>
                 </a>
               </li>
@@ -181,13 +240,13 @@
 
             {% for num in cars.paginator.page_range %}
               <li class="page-item {% if cars.number == num %}active{% endif %}">
-                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                <a class="page-link" href="?page={{ num }}{% if request.GET.start_date %}&start_date={{ start_date|date:'Y-m-d' }}{% endif %}{% if request.GET.end_date %}&end_date={{ end_date|date:'Y-m-d' }}{% endif %}">{{ num }}</a>
               </li>
             {% endfor %}
 
             {% if cars.has_next %}
               <li class="page-item">
-                <a class="page-link" href="?page={{ cars.next_page_number }}" aria-label="Next">
+                <a class="page-link" href="?page={{ cars.next_page_number }}{% if request.GET.start_date %}&start_date={{ start_date|date:'Y-m-d' }}{% endif %}{% if request.GET.end_date %}&end_date={{ end_date|date:'Y-m-d' }}{% endif %}" aria-label="Next">
                   <i class="fas fa-chevron-right"></i>
                 </a>
               </li>
@@ -199,7 +258,7 @@
   </section>
 </main>
 
-<!-- Add this in your head section or at the end of your body -->
+<!-- Styles -->
 <style>
   .hero-section {
     position: relative;
@@ -257,6 +316,132 @@
     background-color: #1e3c72;
     border-color: #1e3c72;
   }
+
+  .availability-section {
+    padding: 20px 0;
+  }
+
+  .date-input-group input {
+    background: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #1e3c72;  /* Dark blue color to match theme */
+    border-radius: 12px;
+    padding: 12px 20px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+  }
+
+  .date-input-group input:focus {
+    background: white;
+    border-color: white;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+  }
+
+  .date-input-group input::-webkit-calendar-picker-indicator {
+    filter: none;  /* Remove the invert filter since we're using dark text now */
+    cursor: pointer;
+  }
+
+  .date-input-group label {
+    font-weight: 500;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-light {
+    background: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    color: #1e3c72;
+  }
+
+  .btn-light:hover {
+    background: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-outline-light {
+    border-radius: 12px;
+    border-width: 2px;
+    padding: 0 1.5rem;
+    transition: all 0.3s ease;
+  }
+
+  .btn-outline-light:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+  }
+
+  .highlight-section {
+    animation: highlight-pulse 2s ease-in-out;
+  }
+
+  @keyframes highlight-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+  }
+
+  .badge.bg-warning {
+    background-color: #ffc107 !important;
+    color: #000;
+  }
+
+  .btn-warning {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #000;
+  }
+
+  .btn-warning:hover {
+    background-color: #ffca2c;
+    border-color: #ffc720;
+    color: #000;
+  }
 </style>
+
+<!-- Add this script -->
+<script>
+function clearDates() {
+    document.getElementById('start_date').value = '';
+    document.getElementById('end_date').value = '';
+    // Preserve other search parameters if any
+    const searchParams = new URLSearchParams(window.location.search);
+    searchParams.delete('start_date');
+    searchParams.delete('end_date');
+    const newUrl = window.location.pathname + (searchParams.toString() ? '?' + searchParams.toString() : '');
+    window.location.href = newUrl;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const startDate = document.getElementById('start_date');
+    const endDate = document.getElementById('end_date');
+
+    startDate.addEventListener('change', function() {
+        endDate.min = this.value;
+        if (endDate.value && endDate.value < this.value) {
+            endDate.value = this.value;
+        }
+    });
+
+    endDate.addEventListener('change', function() {
+        if (startDate.value && this.value < startDate.value) {
+            this.value = startDate.value;
+        }
+    });
+});
+
+function scrollToDateSelection() {
+    const dateSection = document.querySelector('.availability-section');
+    dateSection.scrollIntoView({ behavior: 'smooth' });
+    // Add a highlight effect
+    dateSection.classList.add('highlight-section');
+    setTimeout(() => {
+        dateSection.classList.remove('highlight-section');
+    }, 2000);
+}
+</script>
 
 {% endblock body %}

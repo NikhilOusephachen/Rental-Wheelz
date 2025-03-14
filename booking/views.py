@@ -35,7 +35,15 @@ client = razorpay.Client(
 def bill(request, id):
     car = get_object_or_404(Car, id=id)
     booking_type = request.GET.get('type', 'rent')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
     errors = {}
+
+    # Check availability if dates are provided
+    is_available = True
+    if start_date and end_date:
+        is_available = car.is_available_for_period(start_date, end_date)
+        print(f"Car {car.car_name} availability for {start_date} to {end_date}: {is_available}")
 
     if request.method == 'POST':
         is_lease = request.POST.get('booking_type') == 'lease'
@@ -93,6 +101,9 @@ def bill(request, id):
         'errors': errors,
         'booking_type': booking_type,
         'today_date': datetime.now().date().isoformat(),
+        'is_available': is_available,
+        'start_date': start_date,
+        'end_date': end_date
     }
     return render(request, 'bill.html', context)
 
@@ -134,6 +145,7 @@ def order(request, bill_id):
         payment_id = request.POST.get('razorpay_payment_id')
         razorpay_order_id = request.POST.get('razorpay_order_id')
         razorpay_signature = request.POST.get('razorpay_signature')
+        address = request.POST.get('address')  # Get address from form
 
         try:
             # Verify payment signature
@@ -151,7 +163,8 @@ def order(request, bill_id):
                 is_lease=bill.is_lease,
                 payment_status=True,
                 advance_paid=True if bill.is_lease else False,
-                remaining_months=bill.no_of_months - 1 if bill.is_lease else 0
+                remaining_months=bill.no_of_months - 1 if bill.is_lease else 0,
+                address=address  # Save the address here
             )
 
             messages.success(request, 'First month payment successful!' if bill.is_lease else 'Payment successful!')

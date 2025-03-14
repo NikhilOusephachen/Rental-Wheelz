@@ -8,134 +8,289 @@ Order Details - {{ order.car.car_name }}
 <link rel="stylesheet" href="{% static 'style.css' %}" />
 
 {% block body %}
-<div class="container my-5">
-    <h2 class="text-center mb-4">
-        {{ order.is_lease|yesno:"Lease,Rental" }} Order Details
-    </h2>
+<!-- Hero Section -->
+<section class="hero-section text-center text-white py-3" 
+         style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);">
+  <div class="container">
+    <h2 class="mb-2">{{ order.is_lease|yesno:"Lease,Rental" }} Order Details</h2>
+    <p class="lead mb-0">Order #{{ order.id }}</p>
+  </div>
+</section>
 
-    <div class="card shadow-sm mb-4">
+<div class="container py-4">
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-success alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="row">
+    <!-- Left Column: Car Image and Details -->
+    <div class="col-md-5 mb-4">
+      <div class="card shadow-sm h-100">
+        <img src="{{ order.car.image.url }}" class="card-img-top" alt="{{ order.car.car_name }}" 
+             style="height: 250px; object-fit: cover;">
         <div class="card-body">
-            {% if messages %}
-                <div class="alert alert-success" role="alert">
-                    {% for message in messages %}
-                        {{ message }}
-                    {% endfor %}
-                </div>
-            {% endif %}
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="card-title mb-0">{{ order.car.car_name }}</h4>
+            <span class="badge {% if order.is_approved %}bg-success{% else %}bg-warning{% endif %} rounded-pill">
+              {% if order.is_approved %}
+                <i class="fas fa-check-circle"></i> Approved
+              {% else %}
+                <i class="fas fa-clock"></i> Pending
+              {% endif %}
+            </span>
+          </div>
 
-            <div class="row">
-                <!-- Order Details -->
-                <div class="col-md-6">
-                    <h5 class="card-title">Order Information</h5>
-                    <p><strong>Order ID:</strong> {{ order.id }}</p>
-                    <p><strong>Type:</strong> {{ order.is_lease|yesno:"Lease,Rental" }}</p>
-                    <p><strong>Car Name:</strong> {{ order.car.car_name }}</p>
-                    <p><strong>Car Model:</strong> {{ order.car.car_model.model_name }}</p>
-                    <p><strong>Color:</strong> {{ order.car.car_color.color }}</p>
-                    <p><strong>Fuel:</strong> {{ order.car.car_fuel.fuel }}</p>
-                    <p><strong>Start Date:</strong> {{ order.bill.pick_up_date }}</p>
-                    <p><strong>End Date:</strong> {{ order.bill.rent_end_date }}</p>
-                    {% if order.is_lease %}
-                        <p><strong>Lease Period:</strong> {{ order.bill.no_of_months }} months</p>
-                        <p><strong>Monthly Rate:</strong> ₹{{ order.car.lease_price }}</p>
-                    {% else %}
-                        <p><strong>Rental Period:</strong> {{ order.bill.no_of_days }} days</p>
-                        <p><strong>Daily Rate:</strong> ₹{{ order.car.price }}</p>
-                    {% endif %}
-                    <p><strong>Total Amount:</strong> ₹{{ order.bill.total_rent }}</p>
-                    <p><strong>From Location:</strong> {{ order.bill.from_loc }}</p>
-                    <p><strong>To Location:</strong> {{ order.bill.to_loc }}</p>
-                    <p><strong>Status:</strong> {% if order.is_approved %} Approved {% else %} Not Approved {% endif %}</p>
-                    <p><strong>Payment Status:</strong> {% if order.payment_status %} Paid {% else %} Unpaid {% endif %}</p>
-                </div>
-
-                <!-- Car Image and Additional Info -->
-                <div class="col-md-6">
-                    <img src="{{ order.car.image.url }}" class="img-fluid mb-3" alt="{{ order.car.car_name }}">
-                    
-                    {% if not order.is_lease %}
-                        <!-- Driver Assignment Section (Only for Rentals) -->
-                        <div class="card mt-3">
-                            <div class="card-body">
-                                <h5 class="card-title">Driver Information</h5>
-                                {% if order.is_assigned and driver %}
-                                    <p><strong>Driver Name:</strong> {{ driver.driver.name }}</p>
-                                    <p><strong>License Number:</strong> {{ driver.driver.license_number }}</p>
-                                    <p><strong>Phone Number:</strong> {{ driver.driver.phone_number }}</p>
-                                {% else %}
-                                    <p>No driver has been assigned yet.</p>
-                                    {% if not order.is_assigned %}
-                                        <form method="POST">
-                                            {% csrf_token %}
-                                            <button type="submit" class="btn btn-primary">Request Driver</button>
-                                        </form>
-                                    {% endif %}
-                                {% endif %}
-                            </div>
-                        </div>
-                    {% endif %}
-                </div>
+          <div class="specs-grid">
+            <div class="spec-item">
+              <i class="fas fa-tag text-primary"></i>
+              <span>Model: {{ order.car.car_model.model_name }}</span>
             </div>
-
-            <!-- Rating Section -->
-            {% if order.payment_status and order.is_approved %}
-                <div class="mt-4">
-                    <h5>Rate Your Experience</h5>
-                    <form method="POST" action="{% url 'create_rating' order.car.id order.id %}">
-                        {% csrf_token %}
-                        <div class="form-group">
-                            <label for="rating">Rating (1-5 stars)</label>
-                            <input type="number" class="form-control" id="rating" name="rating" 
-                                   min="1" max="5" value="{{ existing_rating.rating|default:5 }}" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="feedback">Your Feedback</label>
-                            <textarea class="form-control" id="feedback" name="feedback" rows="3">{{ existing_rating.feedback|default:'' }}</textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary">
-                            {% if existing_rating %}Update{% else %}Submit{% endif %} Rating
-                        </button>
-                    </form>
-                </div>
-            {% endif %}
-
-            <!-- Action Buttons -->
-            <div class="text-center mt-4">
-                <a href="{% url 'real_bill' order.id %}" class="btn btn-info">View Bill</a>
-                <a href="{% url 'view_order' %}" class="btn btn-secondary">Back to Orders</a>
+            <div class="spec-item">
+              <i class="fas fa-palette text-primary"></i>
+              <span>Color: {{ order.car.car_color.color }}</span>
             </div>
+            <div class="spec-item">
+              <i class="fas fa-gas-pump text-primary"></i>
+              <span>Fuel: {{ order.car.car_fuel.fuel }}</span>
+            </div>
+          </div>
+
+          <div class="pricing-info bg-light p-3 rounded mt-3">
+            {% if order.is_lease %}
+              <div class="d-flex justify-content-between mb-2">
+                <span>Monthly Rate:</span>
+                <span class="text-primary">₹{{ order.car.lease_price }}</span>
+              </div>
+              <div class="d-flex justify-content-between">
+                <span>Total ({{ order.bill.no_of_months }} months):</span>
+                <span class="h5 mb-0 text-primary">₹{{ order.bill.total_rent }}</span>
+              </div>
+            {% else %}
+              <div class="d-flex justify-content-between mb-2">
+                <span>Daily Rate:</span>
+                <span class="text-primary">₹{{ order.car.price }}</span>
+              </div>
+              <div class="d-flex justify-content-between">
+                <span>Total ({{ order.bill.no_of_days }} days):</span>
+                <span class="h5 mb-0 text-primary">₹{{ order.bill.total_rent }}</span>
+              </div>
+            {% endif %}
+          </div>
         </div>
+      </div>
     </div>
+
+    <!-- Right Column: Order Details and Actions -->
+    <div class="col-md-7">
+      <!-- Booking Details Card -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-body">
+          <h5 class="card-title mb-4">
+            <i class="fas fa-info-circle"></i> Booking Details
+          </h5>
+          
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="detail-item">
+                <span class="label">Start Date:</span>
+                <span class="value">{{ order.bill.pick_up_date }}</span>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="detail-item">
+                <span class="label">End Date:</span>
+                <span class="value">{{ order.bill.rent_end_date }}</span>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="detail-item">
+                <span class="label">From:</span>
+                <span class="value">{{ order.bill.from_loc }}</span>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="detail-item">
+                <span class="label">To:</span>
+                <span class="value">{{ order.bill.to_loc }}</span>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="detail-item">
+                <span class="label">Payment Status:</span>
+                <span class="badge {% if order.payment_status %}bg-success{% else %}bg-danger{% endif %} rounded-pill">
+                  {{ order.payment_status|yesno:"Paid,Unpaid" }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Driver Information Card -->
+      {% if not order.is_lease %}
+      <div class="card shadow-sm mb-4">
+        <div class="card-body">
+          <h5 class="card-title mb-4">
+            <i class="fas fa-user"></i> Driver Information
+          </h5>
+          
+          {% if order.is_assigned and driver %}
+            <div class="driver-info">
+              <div class="detail-item">
+                <span class="label">Driver Name:</span>
+                <span class="value">{{ driver.driver.name }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">License Number:</span>
+                <span class="value">{{ driver.driver.license_number }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">Phone Number:</span>
+                <span class="value">{{ driver.driver.phone_number }}</span>
+              </div>
+            </div>
+          {% else %}
+            <div class="text-center py-3">
+              <p class="text-muted mb-3">No driver has been assigned yet.</p>
+              {% if not order.is_assigned %}
+                <form method="POST">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-user-plus"></i> Request Driver
+                  </button>
+                </form>
+              {% endif %}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Rating Section -->
+      {% if order.payment_status and order.is_approved %}
+      <div class="card shadow-sm mb-4">
+        <div class="card-body">
+          <h5 class="card-title mb-4">
+            <i class="fas fa-star text-warning"></i> Rate Your Experience
+          </h5>
+          
+          <form method="POST" action="{% url 'create_rating' order.car.id order.id %}">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label class="form-label">Rating</label>
+              <div class="rating-input">
+                <input type="number" class="form-control" name="rating" 
+                       min="1" max="5" value="{{ existing_rating.rating|default:5 }}" required>
+                <small class="text-muted">1-5 stars</small>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Your Feedback</label>
+              <textarea class="form-control" name="feedback" rows="3">{{ existing_rating.feedback|default:'' }}</textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-paper-plane"></i> 
+              {% if existing_rating %}Update{% else %}Submit{% endif %} Rating
+            </button>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Action Buttons -->
+      <div class="d-flex gap-2 justify-content-center">
+        <a href="{% url 'real_bill' order.id %}" class="btn btn-info">
+          <i class="fas fa-file-invoice"></i> View Bill
+        </a>
+        <a href="{% url 'view_order' %}" class="btn btn-secondary">
+          <i class="fas fa-arrow-left"></i> Back to Orders
+        </a>
+      </div>
+    </div>
+  </div>
 </div>
 
-<!-- JavaScript for printing -->
-<script>
-    function printOrderDetails() {
-        window.print();
-    }
-</script>
-
-<!-- Print-specific CSS to ensure content displays properly -->
 <style>
+.hero-section {
+  margin-bottom: 2rem;
+}
+
+.specs-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.spec-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 0.25rem;
+}
+
+.detail-item {
+  margin-bottom: 0.75rem;
+}
+
+.detail-item .label {
+  display: block;
+  font-size: 0.875rem;
+  color: #6c757d;
+  margin-bottom: 0.25rem;
+}
+
+.detail-item .value {
+  font-weight: 500;
+  color: #212529;
+}
+
+.card {
+  border: none;
+  border-radius: 0.5rem;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  transition: all 0.3s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.badge {
+  padding: 0.5rem 0.75rem;
+  font-weight: 500;
+}
+
+.rating-input {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.rating-input .form-control {
+  max-width: 100px;
+}
+
 @media print {
-    body * {
-        visibility: hidden; /* Hide everything by default */
-    }
-
-    .container, .container * {
-        visibility: visible; /* Show the container and its content */
-    }
-
-    .container {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%; /* Make sure the container takes the full width */
-    }
-
-    .btn {
-        display: none; /* Hide buttons when printing */
-    }
+  .btn, .hero-section {
+    display: none;
+  }
+  
+  .container {
+    width: 100%;
+    max-width: none;
+  }
 }
 </style>
+
 {% endblock body %}

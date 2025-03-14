@@ -4,6 +4,7 @@ from django.core.validators import FileExtensionValidator
 from django.core.validators import MinValueValidator
 from django.core.validators import MaxValueValidator
 from django.conf import settings
+from datetime import datetime
 
 
 class Brand(models.Model):
@@ -95,6 +96,38 @@ class Car(models.Model):
 
     def __str__(self):
         return self.car_name
+
+    def is_available_for_period(self, start_date, end_date):
+        """Check if car is available for a specific period"""
+        from booking.models import Order
+        
+        # Convert strings to dates if necessary
+        if isinstance(start_date, str):
+            start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+        if isinstance(end_date, str):
+            end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+
+        # First check if there's any approved lease order for this car
+        lease_exists = Order.objects.filter(
+            car=self,
+            is_approved=True,
+            bill__is_lease=True
+        ).exists()
+
+        # If there's an approved lease, car is not available for any dates
+        if lease_exists:
+            return False
+
+        # If no lease, check for rental date conflicts
+        rental_conflicts = Order.objects.filter(
+            car=self,
+            is_approved=True,
+            bill__is_lease=False,
+            bill__pick_up_date__lte=end_date,
+            bill__rent_end_date__gte=start_date
+        ).exists()
+
+        return not rental_conflicts
 
 
 class Contact(models.Model):

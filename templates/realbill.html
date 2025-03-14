@@ -5,175 +5,341 @@ Bill Details
 {% endblock title %}
 
 {% block body %}
-<div class="container my-5" id="print-section">
-    <!-- Receipt Title -->
-    <h2 class="text-center mb-4">RENTAL WHEELZ RECEIPT</h2>
+<!-- Hero Section -->
+<section class="hero-section text-center text-white py-3" 
+         style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);">
+  <div class="container">
+    <h2 class="mb-2">Invoice</h2>
+    <p class="lead mb-0">Receipt #{{ order.id }}</p>
+  </div>
+</section>
 
-    <!-- Main Card for Content -->
-    <div class="card shadow-sm">
-        <div class="card-body">
-
-            <!-- Date and Receipt # -->
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <p><strong>Date:</strong> {{ current_date }}</p>
-                </div>
-                <div class="col-md-6 text-right">
-                    <p><strong>Receipt #:</strong> {{ order.id }}</p>
-                </div>
-            </div>
-
-            <!-- Rental Company and Lessee Info -->
-            <div class="row mb-4 border-bottom pb-4 mt-3">
-                <div class="col-md-6">
-                    <h5 class="border-bottom pb-2"><strong>Rental Company Info</strong></h5>
-                    <p><strong>Company:</strong> Rental Wheelz</p>
-                    <p><strong>Representative:</strong> Manager</p>
-                    <p><strong>Location:</strong> Thayil House Behind Bishops House Changanacherry</p>
-                    <p><strong>City/State/ZIP:</strong> Changanacherry</p>
-                    <p><strong>Phone:</strong> 0481-2420986</p>
-                </div>
-
-                <div class="col-md-6">
-                    <h5 class="border-bottom pb-2"><strong>Customer Info</strong></h5>
-                    <p><strong>Name:</strong> {{ order.user.first_name }} {{ order.user.last_name }}</p>
-                    <p><strong>Email:</strong> {{ order.user.email }}</p>
-                    <p><strong>Address:</strong> {{ order.address }}</p>
-                    <p><strong>Phone:</strong> {{ order.user.phone_number }}</p>
-                </div>
-            </div>
-
-            <!-- Vehicle Information and Pickup/Dropoff Details -->
-            <div class="row border-bottom pb-4">
-                <div class="col-md-6">
-                    <h5 class="border-bottom pb-2"><strong>Vehicle Information</strong></h5>
-                    <p><strong>Make:</strong> {{ order.car.car_name }}</p>
-                    <p><strong>Model:</strong> {{ order.car.car_model.model_name }}</p>
-                    <p><strong>Year:</strong> {{ order.car.year }}</p>
-                    <p><strong>Color:</strong> {{ order.car.car_color.color }}</p>
-                    <p><strong>Insurance Number:</strong> {{ order.car.insurance_number }}</p>
-                </div>
-
-                <div class="col-md-6">
-                    <h5 class="border-bottom pb-2"><strong>Pickup & Dropoff Details</strong></h5>
-                    <p><strong>Pickup Location:</strong> {{ order.bill.from_loc }}</p>
-                    <p><strong>Dropoff Location:</strong> {{ order.bill.to_loc }}</p>
-                    <p><strong>Pickup Date:</strong> {{ order.bill.pick_up_date }}</p>
-                </div>
-            </div>
-
-            <!-- Lease Details -->
-            {% if order.is_lease %}
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <h5>Lease Details</h5>
-                        <p><strong>Monthly Rate:</strong> ₹{{ order.car.lease_price }}</p>
-                        <p><strong>Lease Period:</strong> {{ order.bill.no_of_months }} months</p>
-                        <p><strong>Start Date:</strong> {{ order.bill.pick_up_date }}</p>
-                        <p><strong>End Date:</strong> {{ order.bill.lease_end_date }}</p>
-                    </div>
-                </div>
-            {% else %}
-                <!-- Bill Table -->
-                <table class="table table-bordered mt-4">
-                    <thead class="thead-dark">
-                        <tr>
-                            <th scope="col">Make</th>
-                            <th scope="col">Cost/Day</th>
-                            <th scope="col">Number of Days</th>
-                            <th scope="col">Additional Costs</th>
-                            <th scope="col">Line Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>{{ order.car.car_name }}</td>
-                            <td>₹{{ order.car.price }}</td>
-                            <td>{{ order.bill.no_of_days }}</td>
-                            <td>₹0</td>
-                            <td>₹{{ order.bill.total_rent }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            {% endif %}
-
-            <!-- Payment Method and Totals -->
-            <div class="row mt-4 border-top pt-4">
-                <div class="col-md-6">
-                    <p><strong>Payment Status:</strong></p>
-                    {% if order.payment_status %}
-                        <p class="text-success">Paid</p>
-                    {% else %}
-                        <p class="text-danger">Not Paid</p>
-                    {% endif %}
-                </div>
-                <div class="col-md-6 text-right">
-                    <p><strong>Subtotal:</strong> ₹{{ order.bill.total_rent }}</p>
-                    <p><strong>Tax (X%):</strong> ₹0</p>
-                    <p><strong>Total:</strong> ₹{{ order.bill.total_rent }}</p>
-                    <p><strong>Amount Paid:</strong> ₹{{ order.bill.total_rent }}</p>
-                </div>
-            </div>
-
-            <!-- Authorized Signature and Representative Name -->
-            <div class="row mt-5 border-top pt-4">
-                <div class="col-md-6">
-                    <p><strong>Authorized Signature:</strong> ____________________________</p>
-                </div>
-                <div class="col-md-6 text-right">
-                    <p><strong>Representative Name:</strong> Manager</p>
-                </div>
-            </div>
-
+<div class="container py-4" id="print-section">
+  <div class="card shadow-sm">
+    <div class="card-body p-4">
+      <!-- Header with Logo and Date -->
+      <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+          <h3 class="mb-1">RENTAL WHEELZ</h3>
+          <p class="text-muted mb-0">Professional Car Rental Service</p>
         </div>
+        <div class="text-end">
+          <h6 class="mb-1">Invoice Date</h6>
+          <p class="mb-0">{{ current_date }}</p>
+        </div>
+      </div>
+
+      <hr class="my-4">
+
+      <!-- Company and Customer Info -->
+      <div class="row mb-4">
+        <div class="col-md-6">
+          <div class="info-section">
+            <h5 class="info-title">Company Details</h5>
+            <div class="info-content">
+              <p><i class="fas fa-building text-primary"></i> Rental Wheelz</p>
+              <p><i class="fas fa-user text-primary"></i> Manager</p>
+              <p><i class="fas fa-map-marker-alt text-primary"></i> Thayil House Behind Bishops House</p>
+              <p><i class="fas fa-city text-primary"></i> Changanacherry</p>
+              <p><i class="fas fa-phone text-primary"></i> 0481-2420986</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="info-section">
+            <h5 class="info-title">Customer Details</h5>
+            <div class="info-content">
+              <p><i class="fas fa-user text-primary"></i> {{ order.user.first_name }} {{ order.user.last_name }}</p>
+              <p><i class="fas fa-envelope text-primary"></i> {{ order.user.email }}</p>
+              <p><i class="fas fa-map-marker-alt text-primary"></i> {{ order.address }}</p>
+              <p><i class="fas fa-phone text-primary"></i> {{ order.user.phone_number }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vehicle and Rental Details -->
+      <div class="row mb-4">
+        <div class="col-md-6">
+          <div class="info-section">
+            <h5 class="info-title">Vehicle Information</h5>
+            <div class="info-content">
+              <p><i class="fas fa-car text-primary"></i> {{ order.car.car_name }}</p>
+              <p><i class="fas fa-tag text-primary"></i> {{ order.car.car_model.model_name }}</p>
+              <p><i class="fas fa-calendar text-primary"></i> {{ order.car.year }}</p>
+              <p><i class="fas fa-palette text-primary"></i> {{ order.car.car_color.color }}</p>
+              <p><i class="fas fa-shield-alt text-primary"></i> {{ order.car.insurance_number }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="info-section">
+            <h5 class="info-title">Rental Details</h5>
+            <div class="info-content">
+              <p><i class="fas fa-map-marker-alt text-primary"></i> From: {{ order.bill.from_loc }}</p>
+              <p><i class="fas fa-map-marker text-primary"></i> To: {{ order.bill.to_loc }}</p>
+              <p><i class="fas fa-calendar-alt text-primary"></i> Start: {{ order.bill.pick_up_date }}</p>
+              {% if order.is_lease %}
+                <p><i class="fas fa-calendar-check text-primary"></i> End: {{ order.bill.lease_end_date }}</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Billing Details -->
+      <div class="billing-section">
+        {% if order.is_lease %}
+          <!-- Lease Details -->
+          <div class="table-responsive">
+            <table class="table table-bordered">
+              <thead class="bg-light">
+                <tr>
+                  <th>Description</th>
+                  <th class="text-end">Rate/Month</th>
+                  <th class="text-end">Months</th>
+                  <th class="text-end">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Vehicle Lease - {{ order.car.car_name }}</td>
+                  <td class="text-end">₹{{ order.car.lease_price }}</td>
+                  <td class="text-end">{{ order.bill.no_of_months }}</td>
+                  <td class="text-end">₹{{ order.bill.total_rent }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <!-- Rental Details -->
+          <div class="table-responsive">
+            <table class="table table-bordered">
+              <thead class="bg-light">
+                <tr>
+                  <th>Description</th>
+                  <th class="text-end">Rate/Day</th>
+                  <th class="text-end">Days</th>
+                  <th class="text-end">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Vehicle Rental - {{ order.car.car_name }}</td>
+                  <td class="text-end">₹{{ order.car.price }}</td>
+                  <td class="text-end">{{ order.bill.no_of_days }}</td>
+                  <td class="text-end">₹{{ order.bill.total_rent }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        {% endif %}
+
+        <!-- Total Section -->
+        <div class="total-section">
+          <div class="row justify-content-end">
+            <div class="col-md-5">
+              <table class="table table-borderless">
+                <tr>
+                  <td>Subtotal:</td>
+                  <td class="text-end">₹{{ order.bill.total_rent }}</td>
+                </tr>
+                <tr>
+                  <td>Tax (0%):</td>
+                  <td class="text-end">₹0</td>
+                </tr>
+                <tr class="fw-bold">
+                  <td>Total Amount:</td>
+                  <td class="text-end">₹{{ order.bill.total_rent }}</td>
+                </tr>
+                <tr>
+                  <td>Payment Status:</td>
+                  <td class="text-end">
+                    <span class="badge {% if order.payment_status %}bg-success{% else %}bg-danger{% endif %}">
+                      {{ order.payment_status|yesno:"Paid,Unpaid" }}
+                    </span>
+                  </td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Signature Section -->
+      <div class="signature-section mt-5">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="signature-line">
+              <div class="line"></div>
+              <p class="text-center mt-2">Customer Signature</p>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="signature-line">
+              <div class="line"></div>
+              <p class="text-center mt-2">Manager Signature</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Terms and Conditions -->
+      <div class="terms-section mt-4">
+        <p class="text-muted small mb-0">
+          <i class="fas fa-info-circle"></i> This is a computer-generated document. No signature is required.
+        </p>
+      </div>
     </div>
+  </div>
+
+  <!-- Print Button -->
+  <div class="text-center mt-4 no-print">
+    <button class="btn btn-primary" onclick="printOrderDetails()">
+      <i class="fas fa-print"></i> Print Invoice
+    </button>
+  </div>
 </div>
 
-<!-- Print Button -->
-<div class="text-center mt-5">
-    <button class="btn btn-primary" onclick="printOrderDetails()">Print Bill</button>
-</div>
+<style>
+.info-section {
+  margin-bottom: 1.5rem;
+}
 
-<!-- JavaScript for Printing -->
+.info-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1e3c72;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.info-content p {
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.info-content i {
+  width: 20px;
+}
+
+.table th {
+  font-weight: 600;
+  background-color: #f8f9fa;
+}
+
+.signature-line {
+  margin-top: 2rem;
+}
+
+.signature-line .line {
+  border-bottom: 1px solid #000;
+  margin-bottom: 0.5rem;
+}
+
+.total-section {
+  margin-top: 2rem;
+  background-color: #f8f9fa;
+  padding: 1rem;
+  border-radius: 0.5rem;
+}
+
+.badge {
+  padding: 0.5rem 0.75rem;
+}
+
+@media print {
+  /* Hide elements not needed in print */
+  .no-print, .hero-section {
+    display: none !important;
+  }
+
+  /* Reset card styles for print */
+  .card {
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* Ensure all content is visible */
+  .container {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Force background colors to print */
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* Ensure text colors print properly */
+  .text-primary {
+    color: #1e3c72 !important;
+  }
+
+  /* Ensure table borders print */
+  .table {
+    border-collapse: collapse !important;
+  }
+
+  .table td, .table th {
+    background-color: #fff !important;
+    border: 1px solid #dee2e6 !important;
+  }
+
+  /* Ensure page breaks don't split important content */
+  .info-section, .billing-section, .signature-section {
+    page-break-inside: avoid;
+  }
+
+  /* Add some margin to the printed page */
+  @page {
+    margin: 2cm;
+  }
+}
+</style>
+
 <script>
-    function printOrderDetails() {
-        const printSection = document.getElementById('print-section').cloneNode(true);
+function printOrderDetails() {
+  // Remove any existing print-specific stylesheet
+  const existingStyle = document.getElementById('print-style');
+  if (existingStyle) {
+    existingStyle.remove();
+  }
 
-        const printWindow = window.open('', '_blank', 'width=800,height=600');
-        printWindow.document.write(`
-            <html>
-            <head>
-                <title>Print Bill</title>
-                <style>
-                    @media print {
-                        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
-                        .container { width: auto; margin: 0 auto; padding: 20px; }
-                        .card { border: 1px solid #000; padding: 20px; }
-                        .table-bordered th, .table-bordered td { border: 1px solid #000 !important; }
-                        h5 { border-bottom: 1px solid #000; padding-bottom: 5px; }
-                        .row { margin-bottom: 10px; }
-                        .text-right { text-align: right; }
-                        .text-center { text-align: center; }
-                        html, body { width: 100%; height: 100%; margin: 0; padding: 0; }
-                        .container, .card-body { max-height: 100%; overflow: hidden; }
-                        @page { margin: 20mm; }
-                        header, footer { display: none; }
-                        /* Hiding page number and about:blank URL */
-                        @page { size: auto; margin: 0; }
-                    }
-                </style>
-            </head>
-            <body>
-                ${printSection.innerHTML}
-            </body>
-            </html>
-        `);
-        printWindow.document.close();
-        printWindow.focus();
-        printWindow.print();
-        printWindow.close();
+  // Create print-specific stylesheet
+  const style = document.createElement('style');
+  style.id = 'print-style';
+  style.innerHTML = `
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #print-section, #print-section * {
+        visibility: visible;
+      }
+      #print-section {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+      }
     }
-</script>
+  `;
+  document.head.appendChild(style);
 
+  // Trigger print
+  window.print();
+
+  // Remove print-specific stylesheet after printing
+  setTimeout(() => {
+    style.remove();
+  }, 1000);
+}
+</script>
 
 {% endblock body %}
